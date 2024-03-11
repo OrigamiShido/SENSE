@@ -52,6 +52,7 @@ SYSCONFIG_WEAK void SYSCFG_DL_init(void)
     SYSCFG_DL_SYSCTL_init();
     SYSCFG_DL_TIMER_0_init();
     SYSCFG_DL_TIMER_1_init();
+    SYSCFG_DL_I2C_0_init();
     SYSCFG_DL_UART_0_init();
     SYSCFG_DL_TIMER_Cross_Trigger_init();
 }
@@ -61,17 +62,30 @@ SYSCONFIG_WEAK void SYSCFG_DL_initPower(void)
     DL_GPIO_reset(GPIOA);
     DL_TimerG_reset(TIMER_0_INST);
     DL_TimerG_reset(TIMER_1_INST);
+    DL_I2C_reset(I2C_0_INST);
     DL_UART_Main_reset(UART_0_INST);
 
     DL_GPIO_enablePower(GPIOA);
     DL_TimerG_enablePower(TIMER_0_INST);
     DL_TimerG_enablePower(TIMER_1_INST);
+    DL_I2C_enablePower(I2C_0_INST);
     DL_UART_Main_enablePower(UART_0_INST);
     delay_cycles(POWER_STARTUP_DELAY);
 }
 
 SYSCONFIG_WEAK void SYSCFG_DL_GPIO_init(void)
 {
+
+    DL_GPIO_initPeripheralInputFunctionFeatures(GPIO_I2C_0_IOMUX_SDA,
+        GPIO_I2C_0_IOMUX_SDA_FUNC, DL_GPIO_INVERSION_DISABLE,
+        DL_GPIO_RESISTOR_NONE, DL_GPIO_HYSTERESIS_DISABLE,
+        DL_GPIO_WAKEUP_DISABLE);
+    DL_GPIO_initPeripheralInputFunctionFeatures(GPIO_I2C_0_IOMUX_SCL,
+        GPIO_I2C_0_IOMUX_SCL_FUNC, DL_GPIO_INVERSION_DISABLE,
+        DL_GPIO_RESISTOR_NONE, DL_GPIO_HYSTERESIS_DISABLE,
+        DL_GPIO_WAKEUP_DISABLE);
+    DL_GPIO_enableHiZ(GPIO_I2C_0_IOMUX_SDA);
+    DL_GPIO_enableHiZ(GPIO_I2C_0_IOMUX_SCL);
 
     DL_GPIO_initPeripheralOutputFunction(
         GPIO_UART_0_IOMUX_TX, GPIO_UART_0_IOMUX_TX_FUNC);
@@ -88,40 +102,15 @@ SYSCONFIG_WEAK void SYSCFG_DL_GPIO_init(void)
 
     DL_GPIO_initDigitalOutput(GPIO_GRP_0_DC_IOMUX);
 
-    DL_GPIO_initDigitalOutput(MATRIX_V1_IOMUX);
-
-    DL_GPIO_initDigitalOutput(MATRIX_V2_IOMUX);
-
-    DL_GPIO_initDigitalOutput(MATRIX_V3_IOMUX);
-
-    DL_GPIO_initDigitalOutput(MATRIX_V4_IOMUX);
-
-    DL_GPIO_initDigitalInput(MATRIX_H1_IOMUX);
-
-    DL_GPIO_initDigitalInput(MATRIX_H2_IOMUX);
-
-    DL_GPIO_initDigitalInput(MATRIX_H3_IOMUX);
-
-    DL_GPIO_initDigitalInput(MATRIX_H4_IOMUX);
-
     DL_GPIO_initDigitalOutput(BUZZER_SDA_IOMUX);
 
     DL_GPIO_initDigitalOutput(BUZZER_SCL_IOMUX);
-
-    DL_GPIO_initDigitalOutput(BLUETOOTH_TX_IOMUX);
-
-    DL_GPIO_initDigitalInput(BLUETOOTH_RX_IOMUX);
 
     DL_GPIO_clearPins(GPIOA, GPIO_GRP_0_LED_PIN |
 		GPIO_GRP_0_D0_PIN |
 		GPIO_GRP_0_D1_PIN |
 		GPIO_GRP_0_DC_PIN |
-		MATRIX_V1_PIN |
-		MATRIX_V2_PIN |
-		MATRIX_V3_PIN |
-		MATRIX_V4_PIN |
-		BUZZER_SCL_PIN |
-		BLUETOOTH_TX_PIN);
+		BUZZER_SCL_PIN);
     DL_GPIO_setPins(GPIOA, GPIO_GRP_0_CS_PIN |
 		BUZZER_SDA_PIN);
     DL_GPIO_enableOutput(GPIOA, GPIO_GRP_0_CS_PIN |
@@ -129,25 +118,8 @@ SYSCONFIG_WEAK void SYSCFG_DL_GPIO_init(void)
 		GPIO_GRP_0_D0_PIN |
 		GPIO_GRP_0_D1_PIN |
 		GPIO_GRP_0_DC_PIN |
-		MATRIX_V1_PIN |
-		MATRIX_V2_PIN |
-		MATRIX_V3_PIN |
-		MATRIX_V4_PIN |
 		BUZZER_SDA_PIN |
-		BUZZER_SCL_PIN |
-		BLUETOOTH_TX_PIN);
-    DL_GPIO_setLowerPinsPolarity(GPIOA, DL_GPIO_PIN_0_EDGE_FALL |
-		DL_GPIO_PIN_1_EDGE_FALL |
-		DL_GPIO_PIN_7_EDGE_FALL |
-		DL_GPIO_PIN_12_EDGE_FALL);
-    DL_GPIO_clearInterruptStatus(GPIOA, MATRIX_H1_PIN |
-		MATRIX_H2_PIN |
-		MATRIX_H3_PIN |
-		MATRIX_H4_PIN);
-    DL_GPIO_enableInterrupt(GPIOA, MATRIX_H1_PIN |
-		MATRIX_H2_PIN |
-		MATRIX_H3_PIN |
-		MATRIX_H4_PIN);
+		BUZZER_SCL_PIN);
 
 }
 
@@ -262,6 +234,24 @@ SYSCONFIG_WEAK void SYSCFG_DL_TIMER_1_init(void) {
 
 SYSCONFIG_WEAK void SYSCFG_DL_TIMER_Cross_Trigger_init(void) {
     DL_TimerG_generateCrossTrigger(TIMER_0_INST);
+}
+
+static const DL_I2C_ClockConfig gI2C_0ClockConfig = {
+    .clockSel = DL_I2C_CLOCK_BUSCLK,
+    .divideRatio = DL_I2C_CLOCK_DIVIDE_1,
+};
+
+SYSCONFIG_WEAK void SYSCFG_DL_I2C_0_init(void) {
+
+    DL_I2C_setClockConfig(I2C_0_INST,
+        (DL_I2C_ClockConfig *) &gI2C_0ClockConfig);
+    DL_I2C_setAnalogGlitchFilterPulseWidth(I2C_0_INST,
+        DL_I2C_ANALOG_GLITCH_FILTER_WIDTH_50NS);
+    DL_I2C_enableAnalogGlitchFilter(I2C_0_INST);
+
+
+
+
 }
 
 

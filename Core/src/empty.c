@@ -25,11 +25,11 @@ int main(void)
 	SYSCFG_DL_init();
 	//timer enabler
 
-	NVIC_ClearPendingIRQ(UART1_INT_IRQn);
-	NVIC_EnableIRQ(UART1_INT_IRQn);
+	NVIC_ClearPendingIRQ(UART0_INT_IRQn);
+	NVIC_EnableIRQ(UART0_INT_IRQn);
 
 	DL_TimerG_startCounter(TIMER_0_INST);
-	//NVIC_EnableIRQ(TIMER_0_INST_INT_IRQN);
+	NVIC_EnableIRQ(TIMER_0_INST_INT_IRQN);
 	//OLED self test
 	OLED_Init();
 	OLED_Clear();
@@ -50,20 +50,21 @@ int main(void)
     }
 }
 
-void  UART1_IRQHandler()
+void  UART0_IRQHandler()
 {
-   switch (DL_UART_Main_getPendingInterrupt(UART1)) //����Ƿ񴮿��ж�
+   switch (DL_UART_Main_getPendingInterrupt(UART0)) //����Ƿ񴮿��ж�
 		{
         case DL_UART_MAIN_IIDX_RX:
-            data = DL_UART_Main_receiveData(UART1);  //���ͽ��յ�������
-            DL_UART_Main_transmitDataBlocking(UART1, data);
+            data = DL_UART_Main_receiveData(UART0);  //���ͽ��յ�������
+            DL_UART_Main_transmitDataBlocking(UART0, data);
             break;
         default:
             break;
 		}
 }
 
-/*void TIMER_0_INST_IRQHandler (void){
-	//DL_UART_Main_transmitData(UART1, i);
-	i++;
-}*/
+void TIMER_0_INST_IRQHandler (void){
+	/*DL_UART_Main_transmitDataBlocking(UART0, (uint8_t)'a');
+	DL_UART_Main_transmitDataBlocking(UART0, (uint8_t)'\n');
+	i++;*/
+}
