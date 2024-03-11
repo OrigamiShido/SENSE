@@ -13,7 +13,7 @@ uint32_t EEPROMEmulationBuffer[EEPROM_EMULATION_DATA_SIZE / sizeof(uint32_t)]={0
 
 uint8_t data=0;
 uint8_t dataflow[50]={0};
-uint8_t i=0;
+uint8_t i='a';
 int main(void)
 {
 	//VARIABLES
@@ -29,11 +29,11 @@ int main(void)
 	NVIC_EnableIRQ(UART1_INT_IRQn);
 
 	DL_TimerG_startCounter(TIMER_0_INST);
-	//NVIC_EnableIRQ(TIMER_0_INST_INT_IRQN);
+	NVIC_EnableIRQ(TIMER_0_INST_INT_IRQN);
 	//OLED self test
 	OLED_Init();
 	OLED_Clear();
-	/*OLED_ShowCHinese(0,0,7);//
+	OLED_ShowCHinese(0,0,7);//
 	OLED_ShowCHinese(18,0,8);//
 	OLED_ShowCHinese(36,0,9);
   	OLED_ShowNum(0,2,100,3,18);
@@ -41,7 +41,7 @@ int main(void)
   	OLED_ShowString(2,6,"Notepad sys");
 	//delay_ms(100000);this expression may be wrong! the sysclk doesn't recognize this function in right way!
 	delay_cycles(120000000);
-	OLED_Clear();*/
+	OLED_Clear();
 	//EEPROM_TypeA_eraseAllSectors();
     //EEPROMEmulationState = EEPROM_TypeA_init(&EEPROMEmulationBuffer[0]);
 	while (1) 
@@ -50,12 +50,13 @@ int main(void)
     }
 }
 
-void  UART1_IRQHandler()
+void  UART1_IRQHandler()//txrx正接是从单片机输出到两端，反接是从两端输入到单片机，rx-10,tx-11为反
 {
    switch (DL_UART_Main_getPendingInterrupt(UART1)) //����Ƿ񴮿��ж�
 		{
         case DL_UART_MAIN_IIDX_RX:
             data = DL_UART_Main_receiveData(UART1);  //���ͽ��յ�������
+			i=data;
             DL_UART_Main_transmitDataBlocking(UART1, data);
             break;
         default:
@@ -63,7 +64,7 @@ void  UART1_IRQHandler()
 		}
 }
 
-/*void TIMER_0_INST_IRQHandler (void){
-	//DL_UART_Main_transmitData(UART1, i);
+void TIMER_0_INST_IRQHandler (void){
+	DL_UART_Main_transmitDataBlocking(UART1, i);
 	i++;
-}*/
+}
