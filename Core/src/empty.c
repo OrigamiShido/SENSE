@@ -56,6 +56,7 @@ void  UART0_IRQHandler()
 		{
         case DL_UART_MAIN_IIDX_RX:
             data = DL_UART_Main_receiveData(UART0);  //���ͽ��յ�������
+			i=data;
             DL_UART_Main_transmitDataBlocking(UART0, data);
             break;
         default:
@@ -64,7 +65,6 @@ void  UART0_IRQHandler()
 }
 
 void TIMER_0_INST_IRQHandler (void){
-	/*DL_UART_Main_transmitDataBlocking(UART0, (uint8_t)'a');
-	DL_UART_Main_transmitDataBlocking(UART0, (uint8_t)'\n');
-	i++;*/
+	DL_UART_Main_transmitDataBlocking(UART0,i);
+	i++;
 }

@@ -3,7 +3,7 @@
 <title>Static Call Graph - [.\Objects\empty_driverlib_src_LP_MSPM0L1306_nortos_keil.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\Objects\empty_driverlib_src_LP_MSPM0L1306_nortos_keil.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 6210000: Last Updated: Mon Mar 11 23:42:39 2024
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 6210000: Last Updated: Tue Mar 12 00:26:43 2024
 <BR><P>
 <H3>Maximum Stack Usage =        136 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -370,7 +370,8 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[3b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;DL_UART_transmitData
 <LI><a href="#[3a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;DL_UART_isTXFIFOFull
 </UL>
-<BR>[Called By]<UL><LI><a href="#[c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UART0_IRQHandler
+<BR>[Called By]<UL><LI><a href="#[8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TIMG1_IRQHandler
+<LI><a href="#[c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UART0_IRQHandler
 </UL>
 
 <P><STRONG><a name="[3c]"></a>OLED_Clear</STRONG> (Thumb, 106 bytes, Stack size 24 bytes, oled.o(.text.OLED_Clear))
@@ -532,10 +533,14 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[5f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SYSCFG_DL_init
 </UL>
 
-<P><STRONG><a name="[8]"></a>TIMG1_IRQHandler</STRONG> (Thumb, 2 bytes, Stack size 0 bytes, empty.o(.text.TIMG1_IRQHandler))
+<P><STRONG><a name="[8]"></a>TIMG1_IRQHandler</STRONG> (Thumb, 28 bytes, Stack size 16 bytes, empty.o(.text.TIMG1_IRQHandler))
+<BR><BR>[Stack]<UL><LI>Max Depth = 40<LI>Call Chain = TIMG1_IRQHandler &rArr; DL_UART_transmitDataBlocking &rArr; DL_UART_transmitData
+</UL>
+<BR>[Calls]<UL><LI><a href="#[39]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;DL_UART_transmitDataBlocking
+</UL>
 <BR>[Address Reference Count : 1]<UL><LI> startup_mspm0l1306_uvision.o(RESET)
 </UL>
-<P><STRONG><a name="[c]"></a>UART0_IRQHandler</STRONG> (Thumb, 48 bytes, Stack size 16 bytes, empty.o(.text.UART0_IRQHandler))
+<P><STRONG><a name="[c]"></a>UART0_IRQHandler</STRONG> (Thumb, 52 bytes, Stack size 16 bytes, empty.o(.text.UART0_IRQHandler))
 <BR><BR>[Stack]<UL><LI>Max Depth = 40<LI>Call Chain = UART0_IRQHandler &rArr; DL_UART_transmitDataBlocking &rArr; DL_UART_transmitData
 </UL>
 <BR>[Calls]<UL><LI><a href="#[39]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;DL_UART_transmitDataBlocking
