@@ -435,6 +435,26 @@
               <FileType>1</FileType>
               <FilePath>..\Core\src\eeprom_emulation_type_a.c</FilePath>
             </File>
+            <File>
+              <FileName>I2C_communication.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Core\inc\I2C_communication.h</FilePath>
+            </File>
+            <File>
+              <FileName>I2C_communication.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\src\I2C_communication.c</FilePath>
+            </File>
+            <File>
+              <FileName>msp6050control.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\src\msp6050control.c</FilePath>
+            </File>
+            <File>
+              <FileName>msp6050control.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Core\inc\msp6050control.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

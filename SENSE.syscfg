@@ -50,9 +50,22 @@ GPIO2.associatedPins[0].initialValue = "SET";
 GPIO2.associatedPins[1].assignedPin  = "15";
 GPIO2.associatedPins[1].$name        = "SCL";
 
-I2C1.$name              = "I2C_0";
-I2C1.sdaPinConfig.$name = "ti_driverlib_gpio_GPIOPinGeneric2";
-I2C1.sclPinConfig.$name = "ti_driverlib_gpio_GPIOPinGeneric3";
+I2C1.$name                           = "I2C_0";
+I2C1.basicEnableController           = true;
+I2C1.basicEnableTarget               = true;
+I2C1.basicControllerStandardBusSpeed = "Fast";
+I2C1.advDigitalGlitchFilter          = "CLOCKS_1";
+I2C1.enableDMAEvent1                 = false;
+I2C1.enableDMAEvent2                 = false;
+I2C1.basicControllerBusSpeed         = 400000;
+I2C1.basicTargetSecAddressEnable     = false;
+I2C1.peripheral.$assign              = "I2C1";
+I2C1.sdaPinConfig.$name              = "ti_driverlib_gpio_GPIOPinGeneric2";
+I2C1.sdaPinConfig.enableConfig       = true;
+I2C1.sdaPinConfig.internalResistor   = "PULL_UP";
+I2C1.sclPinConfig.$name              = "ti_driverlib_gpio_GPIOPinGeneric3";
+I2C1.sclPinConfig.enableConfig       = true;
+I2C1.sclPinConfig.internalResistor   = "PULL_UP";
 
 SYSCTL.MFCLKEn = true;
 
@@ -96,9 +109,8 @@ GPIO1.associatedPins[3].pin.$suggestSolution = "PA5";
 GPIO1.associatedPins[4].pin.$suggestSolution = "PA4";
 GPIO2.associatedPins[0].pin.$suggestSolution = "PA16";
 GPIO2.associatedPins[1].pin.$suggestSolution = "PA15";
-I2C1.peripheral.$suggestSolution             = "I2C0";
-I2C1.peripheral.sdaPin.$suggestSolution      = "PA0";
-I2C1.peripheral.sclPin.$suggestSolution      = "PA1";
+I2C1.peripheral.sdaPin.$suggestSolution      = "PA18";
+I2C1.peripheral.sclPin.$suggestSolution      = "PA17/OPA1.IN0-";
 SYSCTL.peripheral.$suggestSolution           = "SYSCTL";
 TIMER1.peripheral.$suggestSolution           = "TIMG1";
 TIMER2.peripheral.$suggestSolution           = "TIMG0";

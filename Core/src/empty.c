@@ -1,6 +1,8 @@
 #include "ti_msp_dl_config.h"
 #include "oled.h"
 #include <eeprom_emulation_type_a.h>
+#include "I2C_communication.h"
+#include "msp6050control.h"
 
 //DEFINE
 
@@ -44,6 +46,7 @@ int main(void)
 	OLED_Clear();*/
 	//EEPROM_TypeA_eraseAllSectors();
     //EEPROMEmulationState = EEPROM_TypeA_init(&EEPROMEmulationBuffer[0]);
+	//DL_I2C_startControllerTransfer(I2C_0_INST, I2C_TARGET_ADDRESS, DL_I2C_CONTROLLER_DIRECTION_RX,8);
 	while (1) 
 	{
 

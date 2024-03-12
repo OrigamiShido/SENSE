@@ -76,14 +76,15 @@ SYSCONFIG_WEAK void SYSCFG_DL_initPower(void)
 SYSCONFIG_WEAK void SYSCFG_DL_GPIO_init(void)
 {
 
-    DL_GPIO_initPeripheralInputFunctionFeatures(GPIO_I2C_0_IOMUX_SDA,
-        GPIO_I2C_0_IOMUX_SDA_FUNC, DL_GPIO_INVERSION_DISABLE,
-        DL_GPIO_RESISTOR_NONE, DL_GPIO_HYSTERESIS_DISABLE,
-        DL_GPIO_WAKEUP_DISABLE);
-    DL_GPIO_initPeripheralInputFunctionFeatures(GPIO_I2C_0_IOMUX_SCL,
-        GPIO_I2C_0_IOMUX_SCL_FUNC, DL_GPIO_INVERSION_DISABLE,
-        DL_GPIO_RESISTOR_NONE, DL_GPIO_HYSTERESIS_DISABLE,
-        DL_GPIO_WAKEUP_DISABLE);
+    
+	DL_GPIO_initPeripheralInputFunctionFeatures(
+		 GPIO_I2C_0_IOMUX_SDA, GPIO_I2C_0_IOMUX_SDA_FUNC,
+		 DL_GPIO_INVERSION_DISABLE, DL_GPIO_RESISTOR_PULL_UP,
+		 DL_GPIO_HYSTERESIS_DISABLE, DL_GPIO_WAKEUP_DISABLE);
+	DL_GPIO_initPeripheralInputFunctionFeatures(
+		 GPIO_I2C_0_IOMUX_SCL, GPIO_I2C_0_IOMUX_SCL_FUNC,
+		 DL_GPIO_INVERSION_DISABLE, DL_GPIO_RESISTOR_PULL_UP,
+		 DL_GPIO_HYSTERESIS_DISABLE, DL_GPIO_WAKEUP_DISABLE);
     DL_GPIO_enableHiZ(GPIO_I2C_0_IOMUX_SDA);
     DL_GPIO_enableHiZ(GPIO_I2C_0_IOMUX_SCL);
 
@@ -248,8 +249,27 @@ SYSCONFIG_WEAK void SYSCFG_DL_I2C_0_init(void) {
     DL_I2C_setAnalogGlitchFilterPulseWidth(I2C_0_INST,
         DL_I2C_ANALOG_GLITCH_FILTER_WIDTH_50NS);
     DL_I2C_enableAnalogGlitchFilter(I2C_0_INST);
+    DL_I2C_setDigitalGlitchFilterPulseWidth(I2C_0_INST,
+        DL_I2C_DIGITAL_GLITCH_FILTER_WIDTH_CLOCKS_1);
 
+    /* Configure Controller Mode */
+    DL_I2C_resetControllerTransfer(I2C_0_INST);
+    /* Set frequency to 400000 Hz*/
+    DL_I2C_setTimerPeriod(I2C_0_INST, 7);
+    DL_I2C_setControllerTXFIFOThreshold(I2C_0_INST, DL_I2C_TX_FIFO_LEVEL_EMPTY);
+    DL_I2C_setControllerRXFIFOThreshold(I2C_0_INST, DL_I2C_RX_FIFO_LEVEL_BYTES_1);
+    DL_I2C_enableControllerClockStretching(I2C_0_INST);
 
+    /* Configure Target Mode */
+    DL_I2C_setTargetOwnAddress(I2C_0_INST, I2C_0_TARGET_OWN_ADDR);
+    DL_I2C_setTargetTXFIFOThreshold(I2C_0_INST, DL_I2C_TX_FIFO_LEVEL_EMPTY);
+    DL_I2C_setTargetRXFIFOThreshold(I2C_0_INST, DL_I2C_RX_FIFO_LEVEL_BYTES_1);
+
+    DL_I2C_enableTargetClockStretching(I2C_0_INST);
+
+    /* Enable module */
+    DL_I2C_enableController(I2C_0_INST);
+    DL_I2C_enableTarget(I2C_0_INST);
 
 
 }
