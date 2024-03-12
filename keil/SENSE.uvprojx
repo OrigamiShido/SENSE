@@ -445,16 +445,6 @@
               <FileType>1</FileType>
               <FilePath>..\Core\src\I2C_communication.c</FilePath>
             </File>
-            <File>
-              <FileName>msp6050control.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Core\src\msp6050control.c</FilePath>
-            </File>
-            <File>
-              <FileName>msp6050control.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\Core\inc\msp6050control.h</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>

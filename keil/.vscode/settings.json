@@ -3,7 +3,8 @@
         "ti_msp_dl_config.h": "c",
         "eeprom_emulation_type_a.h": "c",
         "oled.h": "c",
-        "i2c_communication.h": "c"
+        "i2c_communication.h": "c",
+        "msp6050control.h": "c"
     },
     "editor.wordWrap": "on"
 }
