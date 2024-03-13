@@ -80,7 +80,7 @@ extern "C" {
 #define TIMER_0_INST                                                     (TIMG1)
 #define TIMER_0_INST_IRQHandler                                 TIMG1_IRQHandler
 #define TIMER_0_INST_INT_IRQN                                   (TIMG1_INT_IRQn)
-#define TIMER_0_INST_LOAD_VALUE                                         (32767U)
+#define TIMER_0_INST_LOAD_VALUE                                          (3276U)
 /* Defines for TIMER_1 */
 #define TIMER_1_INST                                                     (TIMG0)
 #define TIMER_1_INST_IRQHandler                                 TIMG0_IRQHandler
@@ -89,21 +89,52 @@ extern "C" {
 
 
 
+
+/* Defines for I2C_0 */
+#define I2C_0_INST                                                          I2C1
+#define I2C_0_INST_IRQHandler                                    I2C1_IRQHandler
+#define I2C_0_INST_INT_IRQN                                        I2C1_INT_IRQn
+#define I2C_0_BUS_SPEED_HZ                                                400000
+#define GPIO_I2C_0_SDA_PORT                                                GPIOA
+#define GPIO_I2C_0_SDA_PIN                                        DL_GPIO_PIN_16
+#define GPIO_I2C_0_IOMUX_SDA                                     (IOMUX_PINCM17)
+#define GPIO_I2C_0_IOMUX_SDA_FUNC                      IOMUX_PINCM17_PF_I2C1_SDA
+#define GPIO_I2C_0_SCL_PORT                                                GPIOA
+#define GPIO_I2C_0_SCL_PIN                                        DL_GPIO_PIN_15
+#define GPIO_I2C_0_IOMUX_SCL                                     (IOMUX_PINCM16)
+#define GPIO_I2C_0_IOMUX_SCL_FUNC                      IOMUX_PINCM16_PF_I2C1_SCL
+
+
 /* Defines for UART_0 */
-#define UART_0_INST                                                        UART1
-#define UART_0_INST_IRQHandler                                  UART1_IRQHandler
-#define UART_0_INST_INT_IRQN                                      UART1_INT_IRQn
+#define UART_0_INST                                                        UART0
+#define UART_0_INST_IRQHandler                                  UART0_IRQHandler
+#define UART_0_INST_INT_IRQN                                      UART0_INT_IRQn
 #define GPIO_UART_0_RX_PORT                                                GPIOA
 #define GPIO_UART_0_TX_PORT                                                GPIOA
-#define GPIO_UART_0_RX_PIN                                        DL_GPIO_PIN_11
-#define GPIO_UART_0_TX_PIN                                        DL_GPIO_PIN_10
-#define GPIO_UART_0_IOMUX_RX                                     (IOMUX_PINCM12)
-#define GPIO_UART_0_IOMUX_TX                                     (IOMUX_PINCM11)
-#define GPIO_UART_0_IOMUX_RX_FUNC                      IOMUX_PINCM12_PF_UART1_RX
-#define GPIO_UART_0_IOMUX_TX_FUNC                      IOMUX_PINCM11_PF_UART1_TX
+#define GPIO_UART_0_RX_PIN                                         DL_GPIO_PIN_9
+#define GPIO_UART_0_TX_PIN                                         DL_GPIO_PIN_8
+#define GPIO_UART_0_IOMUX_RX                                     (IOMUX_PINCM10)
+#define GPIO_UART_0_IOMUX_TX                                      (IOMUX_PINCM9)
+#define GPIO_UART_0_IOMUX_RX_FUNC                      IOMUX_PINCM10_PF_UART0_RX
+#define GPIO_UART_0_IOMUX_TX_FUNC                       IOMUX_PINCM9_PF_UART0_TX
 #define UART_0_BAUD_RATE                                                (115200)
 #define UART_0_IBRD_32_MHZ_115200_BAUD                                      (17)
 #define UART_0_FBRD_32_MHZ_115200_BAUD                                      (23)
+/* Defines for UART_1 */
+#define UART_1_INST                                                        UART1
+#define UART_1_INST_IRQHandler                                  UART1_IRQHandler
+#define UART_1_INST_INT_IRQN                                      UART1_INT_IRQn
+#define GPIO_UART_1_RX_PORT                                                GPIOA
+#define GPIO_UART_1_TX_PORT                                                GPIOA
+#define GPIO_UART_1_RX_PIN                                        DL_GPIO_PIN_11
+#define GPIO_UART_1_TX_PIN                                        DL_GPIO_PIN_10
+#define GPIO_UART_1_IOMUX_RX                                     (IOMUX_PINCM12)
+#define GPIO_UART_1_IOMUX_TX                                     (IOMUX_PINCM11)
+#define GPIO_UART_1_IOMUX_RX_FUNC                      IOMUX_PINCM12_PF_UART1_RX
+#define GPIO_UART_1_IOMUX_TX_FUNC                      IOMUX_PINCM11_PF_UART1_TX
+#define UART_1_BAUD_RATE                                                (115200)
+#define UART_1_IBRD_32_MHZ_115200_BAUD                                      (17)
+#define UART_1_FBRD_32_MHZ_115200_BAUD                                      (23)
 
 
 
@@ -127,58 +158,6 @@ extern "C" {
 /* Defines for DC: GPIOA.4 with pinCMx 5 on package pin 8 */
 #define GPIO_GRP_0_DC_PIN                                        (DL_GPIO_PIN_4)
 #define GPIO_GRP_0_DC_IOMUX                                       (IOMUX_PINCM5)
-/* Port definition for Pin Group MATRIX */
-#define MATRIX_PORT                                                      (GPIOA)
-
-/* Defines for V1: GPIOA.13 with pinCMx 14 on package pin 17 */
-#define MATRIX_V1_PIN                                           (DL_GPIO_PIN_13)
-#define MATRIX_V1_IOMUX                                          (IOMUX_PINCM14)
-/* Defines for V2: GPIOA.14 with pinCMx 15 on package pin 18 */
-#define MATRIX_V2_PIN                                           (DL_GPIO_PIN_14)
-#define MATRIX_V2_IOMUX                                          (IOMUX_PINCM15)
-/* Defines for V3: GPIOA.17 with pinCMx 18 on package pin 21 */
-#define MATRIX_V3_PIN                                           (DL_GPIO_PIN_17)
-#define MATRIX_V3_IOMUX                                          (IOMUX_PINCM18)
-/* Defines for V4: GPIOA.18 with pinCMx 19 on package pin 22 */
-#define MATRIX_V4_PIN                                           (DL_GPIO_PIN_18)
-#define MATRIX_V4_IOMUX                                          (IOMUX_PINCM19)
-/* Defines for H1: GPIOA.0 with pinCMx 1 on package pin 1 */
-// pins affected by this interrupt request:["H1","H2","H3","H4"]
-#define MATRIX_INT_IRQN                                         (GPIOA_INT_IRQn)
-#define MATRIX_INT_IIDX                         (DL_INTERRUPT_GROUP1_IIDX_GPIOA)
-#define MATRIX_H1_IIDX                                       (DL_GPIO_IIDX_DIO0)
-#define MATRIX_H1_PIN                                            (DL_GPIO_PIN_0)
-#define MATRIX_H1_IOMUX                                           (IOMUX_PINCM1)
-/* Defines for H2: GPIOA.1 with pinCMx 2 on package pin 2 */
-#define MATRIX_H2_IIDX                                       (DL_GPIO_IIDX_DIO1)
-#define MATRIX_H2_PIN                                            (DL_GPIO_PIN_1)
-#define MATRIX_H2_IOMUX                                           (IOMUX_PINCM2)
-/* Defines for H3: GPIOA.7 with pinCMx 8 on package pin 11 */
-#define MATRIX_H3_IIDX                                       (DL_GPIO_IIDX_DIO7)
-#define MATRIX_H3_PIN                                            (DL_GPIO_PIN_7)
-#define MATRIX_H3_IOMUX                                           (IOMUX_PINCM8)
-/* Defines for H4: GPIOA.12 with pinCMx 13 on package pin 16 */
-#define MATRIX_H4_IIDX                                      (DL_GPIO_IIDX_DIO12)
-#define MATRIX_H4_PIN                                           (DL_GPIO_PIN_12)
-#define MATRIX_H4_IOMUX                                          (IOMUX_PINCM13)
-/* Port definition for Pin Group BUZZER */
-#define BUZZER_PORT                                                      (GPIOA)
-
-/* Defines for SDA: GPIOA.16 with pinCMx 17 on package pin 20 */
-#define BUZZER_SDA_PIN                                          (DL_GPIO_PIN_16)
-#define BUZZER_SDA_IOMUX                                         (IOMUX_PINCM17)
-/* Defines for SCL: GPIOA.15 with pinCMx 16 on package pin 19 */
-#define BUZZER_SCL_PIN                                          (DL_GPIO_PIN_15)
-#define BUZZER_SCL_IOMUX                                         (IOMUX_PINCM16)
-/* Port definition for Pin Group BLUETOOTH */
-#define BLUETOOTH_PORT                                                   (GPIOA)
-
-/* Defines for TX: GPIOA.8 with pinCMx 9 on package pin 12 */
-#define BLUETOOTH_TX_PIN                                         (DL_GPIO_PIN_8)
-#define BLUETOOTH_TX_IOMUX                                        (IOMUX_PINCM9)
-/* Defines for RX: GPIOA.9 with pinCMx 10 on package pin 13 */
-#define BLUETOOTH_RX_PIN                                         (DL_GPIO_PIN_9)
-#define BLUETOOTH_RX_IOMUX                                       (IOMUX_PINCM10)
 
 /* clang-format on */
 
@@ -189,7 +168,9 @@ void SYSCFG_DL_SYSCTL_init(void);
 void SYSCFG_DL_TIMER_0_init(void);
 void SYSCFG_DL_TIMER_1_init(void);
 void SYSCFG_DL_TIMER_Cross_Trigger_init(void);
+void SYSCFG_DL_I2C_0_init(void);
 void SYSCFG_DL_UART_0_init(void);
+void SYSCFG_DL_UART_1_init(void);
 
 
 

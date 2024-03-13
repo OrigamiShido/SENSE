@@ -11,15 +11,15 @@
 const Board  = scripting.addModule("/ti/driverlib/Board");
 const GPIO   = scripting.addModule("/ti/driverlib/GPIO", {}, false);
 const GPIO1  = GPIO.addInstance();
-const GPIO2  = GPIO.addInstance();
-const GPIO3  = GPIO.addInstance();
-const GPIO4  = GPIO.addInstance();
+const I2C    = scripting.addModule("/ti/driverlib/I2C", {}, false);
+const I2C1   = I2C.addInstance();
 const SYSCTL = scripting.addModule("/ti/driverlib/SYSCTL");
 const TIMER  = scripting.addModule("/ti/driverlib/TIMER", {}, false);
 const TIMER1 = TIMER.addInstance();
 const TIMER2 = TIMER.addInstance();
 const UART   = scripting.addModule("/ti/driverlib/UART", {}, false);
 const UART1  = UART.addInstance();
+const UART2  = UART.addInstance();
 
 /**
  * Write custom configuration values to the imported modules.
@@ -42,63 +42,29 @@ GPIO1.associatedPins[3].assignedPin  = "5";
 GPIO1.associatedPins[4].$name        = "DC";
 GPIO1.associatedPins[4].assignedPin  = "4";
 
-GPIO2.$name                         = "MATRIX";
-GPIO2.associatedPins.create(8);
-GPIO2.associatedPins[0].$name       = "V1";
-GPIO2.associatedPins[0].assignedPin = "13";
-GPIO2.associatedPins[1].$name       = "V2";
-GPIO2.associatedPins[1].assignedPin = "14";
-GPIO2.associatedPins[2].$name       = "V3";
-GPIO2.associatedPins[2].assignedPin = "17";
-GPIO2.associatedPins[3].$name       = "V4";
-GPIO2.associatedPins[3].assignedPin = "18";
-GPIO2.associatedPins[4].$name       = "H1";
-GPIO2.associatedPins[4].direction   = "INPUT";
-GPIO2.associatedPins[4].assignedPin = "0";
-GPIO2.associatedPins[4].interruptEn = true;
-GPIO2.associatedPins[4].polarity    = "FALL";
-GPIO2.associatedPins[5].$name       = "H2";
-GPIO2.associatedPins[5].direction   = "INPUT";
-GPIO2.associatedPins[5].assignedPin = "1";
-GPIO2.associatedPins[5].interruptEn = true;
-GPIO2.associatedPins[5].polarity    = "FALL";
-GPIO2.associatedPins[6].$name       = "H3";
-GPIO2.associatedPins[6].direction   = "INPUT";
-GPIO2.associatedPins[6].assignedPin = "7";
-GPIO2.associatedPins[6].interruptEn = true;
-GPIO2.associatedPins[6].polarity    = "FALL";
-GPIO2.associatedPins[7].$name       = "H4";
-GPIO2.associatedPins[7].direction   = "INPUT";
-GPIO2.associatedPins[7].assignedPin = "12";
-GPIO2.associatedPins[7].interruptEn = true;
-GPIO2.associatedPins[7].polarity    = "FALL";
-
-GPIO3.$name                          = "BUZZER";
-GPIO3.associatedPins.create(2);
-GPIO3.associatedPins[0].assignedPin  = "16";
-GPIO3.associatedPins[0].$name        = "SDA";
-GPIO3.associatedPins[0].initialValue = "SET";
-GPIO3.associatedPins[1].assignedPin  = "15";
-GPIO3.associatedPins[1].$name        = "SCL";
-
-GPIO4.$name                         = "BLUETOOTH";
-GPIO4.associatedPins.create(2);
-GPIO4.associatedPins[0].$name       = "TX";
-GPIO4.associatedPins[0].assignedPin = "8";
-GPIO4.associatedPins[1].$name       = "RX";
-GPIO4.associatedPins[1].direction   = "INPUT";
-GPIO4.associatedPins[1].assignedPin = "9";
+I2C1.$name                           = "I2C_0";
+I2C1.basicEnableController           = true;
+I2C1.basicControllerStandardBusSpeed = "Fast";
+I2C1.peripheral.$assign              = "I2C1";
+I2C1.peripheral.sdaPin.$assign       = "PA16";
+I2C1.peripheral.sclPin.$assign       = "PA15";
+I2C1.sdaPinConfig.$name              = "ti_driverlib_gpio_GPIOPinGeneric2";
+I2C1.sdaPinConfig.enableConfig       = true;
+I2C1.sdaPinConfig.internalResistor   = "PULL_UP";
+I2C1.sclPinConfig.$name              = "ti_driverlib_gpio_GPIOPinGeneric3";
+I2C1.sclPinConfig.enableConfig       = true;
+I2C1.sclPinConfig.internalResistor   = "PULL_UP";
 
 SYSCTL.MFCLKEn = true;
 
 TIMER1.$name             = "TIMER_0";
-TIMER1.timerPeriod       = "1 s";
 TIMER1.timerClkSrc       = "LFCLK";
 TIMER1.timerMode         = "PERIODIC";
 TIMER1.interrupts        = ["ZERO"];
 TIMER1.interruptPriority = "0";
 TIMER1.timerStartTimer   = true;
 TIMER1.crossTriggerEn    = true;
+TIMER1.timerPeriod       = "100 ms";
 
 TIMER2.$name             = "TIMER_1";
 TIMER2.timerClkSrc       = "LFCLK";
@@ -111,10 +77,18 @@ TIMER2.crossTriggerEn    = true;
 UART1.$name                    = "UART_0";
 UART1.enabledInterrupts        = ["RX","RX_TIMEOUT_ERROR"];
 UART1.targetBaudRate           = 115200;
-UART1.peripheral.rxPin.$assign = "PA11";
-UART1.peripheral.txPin.$assign = "PA10";
+UART1.peripheral.$assign       = "UART0";
+UART1.peripheral.rxPin.$assign = "PA9";
+UART1.peripheral.txPin.$assign = "PA8";
 UART1.txPinConfig.$name        = "ti_driverlib_gpio_GPIOPinGeneric0";
 UART1.rxPinConfig.$name        = "ti_driverlib_gpio_GPIOPinGeneric1";
+
+UART2.$name                    = "UART_1";
+UART2.targetBaudRate           = 115200;
+UART2.peripheral.rxPin.$assign = "PA11";
+UART2.peripheral.txPin.$assign = "PA10";
+UART2.txPinConfig.$name        = "ti_driverlib_gpio_GPIOPinGeneric4";
+UART2.rxPinConfig.$name        = "ti_driverlib_gpio_GPIOPinGeneric5";
 
 /**
  * Pinmux solution for unlocked pins/peripherals. This ensures that minor changes to the automatic solver in a future
@@ -129,19 +103,7 @@ GPIO1.associatedPins[1].pin.$suggestSolution = "PA3";
 GPIO1.associatedPins[2].pin.$suggestSolution = "PA6";
 GPIO1.associatedPins[3].pin.$suggestSolution = "PA5";
 GPIO1.associatedPins[4].pin.$suggestSolution = "PA4";
-GPIO2.associatedPins[0].pin.$suggestSolution = "PA13";
-GPIO2.associatedPins[1].pin.$suggestSolution = "PA14";
-GPIO2.associatedPins[2].pin.$suggestSolution = "PA17/OPA1.IN0-";
-GPIO2.associatedPins[3].pin.$suggestSolution = "PA18";
-GPIO2.associatedPins[4].pin.$suggestSolution = "PA0";
-GPIO2.associatedPins[5].pin.$suggestSolution = "PA1";
-GPIO2.associatedPins[6].pin.$suggestSolution = "PA7";
-GPIO2.associatedPins[7].pin.$suggestSolution = "PA12";
-GPIO3.associatedPins[0].pin.$suggestSolution = "PA16";
-GPIO3.associatedPins[1].pin.$suggestSolution = "PA15";
-GPIO4.associatedPins[0].pin.$suggestSolution = "PA8";
-GPIO4.associatedPins[1].pin.$suggestSolution = "PA9";
 SYSCTL.peripheral.$suggestSolution           = "SYSCTL";
 TIMER1.peripheral.$suggestSolution           = "TIMG1";
 TIMER2.peripheral.$suggestSolution           = "TIMG0";
-UART1.peripheral.$suggestSolution            = "UART1";
+UART2.peripheral.$suggestSolution            = "UART1";

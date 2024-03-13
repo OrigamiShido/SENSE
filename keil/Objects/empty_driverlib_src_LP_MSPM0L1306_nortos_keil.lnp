@@ -4,6 +4,7 @@
 ".\objects\ti_msp_dl_config.o"
 ".\objects\oled.o"
 ".\objects\eeprom_emulation_type_a.o"
+".\objects\i2c_communication.o"
 ".\objects\dl_adc12.o"
 ".\objects\dl_aes.o"
 ".\objects\dl_common.o"
