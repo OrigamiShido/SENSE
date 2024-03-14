@@ -1,9 +1,9 @@
 Dependencies for Project 'SENSE', Target 'SENSE': (DO NOT MODIFY !)
 CompilerVersion: 6210000::V6.21::ARMCLANG
-F (../SENSE.syscfg)(0x65F1CD6A)()
+F (../SENSE.syscfg)(0x65F1CF2C)()
 F (startup_mspm0l1306_uvision.s)(0x65A9F9F4)(--target=arm-arm-none-eabi -mcpu=cortex-m0plus -masm=auto  -Wa,armasm,--diag_suppress=A1950W -c-gdwarf-4-Wa,armasm,--pd,"__UVISION_VERSION SETA 539" -Wa,armasm,--pd,"__MSPM0L1306__ SETA 1"-o ./objects/startup_mspm0l1306_uvision.o)
-F (..\Core\inc\ti_msp_dl_config.h)(0x65F1CD64)()
-F (..\Core\src\empty.c)(0x65F1CE5D)(-xc -std=c99 --target=arm-arm-none-eabi -mcpu=cortex-m0plus -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-gdwarf-4 -O0 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -Wno-reserved-identifier -Wno-covered-switch-default -Wno-unreachable-code-break -I ../Core/inc -I ../Driver -I ../Driver/CMSIS/Core/Include -I ../Core/src-D__UVISION_VERSION="539" -D__MSPM0L1306__ -D__MSPM0L1306__-o ./objects/empty.o -MD)
+F (..\Core\inc\ti_msp_dl_config.h)(0x65F1CF2C)()
+F (..\Core\src\empty.c)(0x65F2F225)(-xc -std=c99 --target=arm-arm-none-eabi -mcpu=cortex-m0plus -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-gdwarf-4 -O0 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -Wno-reserved-identifier -Wno-covered-switch-default -Wno-unreachable-code-break -I ../Core/inc -I ../Driver -I ../Driver/CMSIS/Core/Include -I ../Core/src-D__UVISION_VERSION="539" -D__MSPM0L1306__ -D__MSPM0L1306__-o ./objects/empty.o -MD)
 I (..\Driver\ti\devices\msp\msp.h\.\Driver\ti\devices\DeviceFamily.h)(0x00000000)
 I (..\Driver\ti\devices\msp\m0p\mspm0l130x.h)(0x65A9F9F1)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stdint.h)(0x6569B012)
@@ -56,8 +56,8 @@ I (..\Driver\ti\driverlib\dl_vref.hx.\Driver\ti\driverlib\dl_wwdt.h)(0x00000000)
 I (..\Driver\ti\driverlib\m0p\dl_interrupt.h)(0x65A9F9F3)
 I (..\Driver\ti\driverlib\m0p\dl_systick.h..\Core\inc\oled.h)(0x00000000)
 I (..\Core\inc\eeprom_emulation_type_a.h..\Core\inc\I2C_communication.h)(0x00000000)
-F (..\Core\src\ti_msp_dl_config.c)(0x65F1CD60)(-xc -std=c99 --target=arm-arm-none-eabi -mcpu=cortex-m0plus -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-gdwarf-4 -O0 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -Wno-reserved-identifier -Wno-covered-switch-default -Wno-unreachable-code-break -I ../Core/inc -I ../Driver -I ../Driver/CMSIS/Core/Include -I ../Core/src-D__UVISION_VERSION="539" -D__MSPM0L1306__ -D__MSPM0L1306__-o ./objects/ti_msp_dl_config.o -MD)
-I (..\Core\inc\ti_msp_dl_config.h)(0x65F1CD64)
+F (..\Core\src\ti_msp_dl_config.c)(0x65F1CF2C)(-xc -std=c99 --target=arm-arm-none-eabi -mcpu=cortex-m0plus -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-gdwarf-4 -O0 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -Wno-reserved-identifier -Wno-covered-switch-default -Wno-unreachable-code-break -I ../Core/inc -I ../Driver -I ../Driver/CMSIS/Core/Include -I ../Core/src-D__UVISION_VERSION="539" -D__MSPM0L1306__ -D__MSPM0L1306__-o ./objects/ti_msp_dl_config.o -MD)
+I (..\Core\inc\ti_msp_dl_config.h)(0x65F1CF2C)
 I (..\Driver\ti\devices\DeviceFamily.h)(0x65A9F9F0)
 I (..\Driver\ti\devices\msp\m0p\mspm0l130x.h)(0x65A9F9F1)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stdint.h)(0x6569B012)
@@ -218,9 +218,9 @@ I (..\Driver\ti\driverlib\dl_uart.hx.\Driver\ti\driverlib\dl_uart_main.h)(0x0000
 I (..\Driver\ti\driverlib\dl_vref.hx.\Driver\ti\driverlib\dl_wwdt.h)(0x00000000)
 I (..\Driver\ti\driverlib\m0p\dl_interrupt.h)(0x65A9F9F3)
 I (..\Driver\ti\driverlib\m0p\dl_systick.h)(0x65A9F9F3)
-F (..\Core\inc\I2C_communication.h)(0x65F1CBE7)()
-F (..\Core\src\I2C_communication.c)(0x65F1CBE9)(-xc -std=c99 --target=arm-arm-none-eabi -mcpu=cortex-m0plus -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-gdwarf-4 -O0 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -Wno-reserved-identifier -Wno-covered-switch-default -Wno-unreachable-code-break -I ../Core/inc -I ../Driver -I ../Driver/CMSIS/Core/Include -I ../Core/src-D__UVISION_VERSION="539" -D__MSPM0L1306__ -D__MSPM0L1306__-o ./objects/i2c_communication.o -MD)
-I (..\Core\inc\I2C_communication.h)(0x65F1CBE7)
+F (..\Core\inc\I2C_communication.h)(0x65F1CF2C)()
+F (..\Core\src\I2C_communication.c)(0x65F1CF2C)(-xc -std=c99 --target=arm-arm-none-eabi -mcpu=cortex-m0plus -c-fno-rtti -funsigned-char -fshort-enums -fshort-wchar-gdwarf-4 -O0 -ffunction-sections -Wno-packed -Wno-missing-variable-declarations -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-nonportable-include-path -Wno-reserved-id-macro -Wno-unused-macros -Wno-documentation-unknown-command -Wno-documentation -Wno-license-management -Wno-parentheses-equality -Wno-reserved-identifier -Wno-covered-switch-default -Wno-unreachable-code-break -I ../Core/inc -I ../Driver -I ../Driver/CMSIS/Core/Include -I ../Core/src-D__UVISION_VERSION="539" -D__MSPM0L1306__ -D__MSPM0L1306__-o ./objects/i2c_communication.o -MD)
+I (..\Core\inc\I2C_communication.h)(0x65F1CF2C)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stdbool.h)(0x6569B012)
 I (C:\Keil_v5\ARM\ARMCLANG\include\stdint.h)(0x6569B012)
 I (..\Core\inc\ti_msp_dl_config.he.\Driver\ti\devices\msp\msp.h)(0x00000000)

@@ -148,7 +148,24 @@
           <Name>UL2CM3(-S0 -C0 -P0 -FD20000000 -FC1000 -FN1 -FF0MSPM0L11XX_L13XX_MAIN_64KB -FS00 -FL010000 -FP0($$Device:MSPM0L1306$02_Flash_Programming\FlashARM\MSPM0L11XX_L13XX_MAIN_64KB.FLM))</Name>
         </SetRegEntry>
       </TargetDriverDllRegistry>
-      <Breakpoint/>
+      <Breakpoint>
+        <Bp>
+          <Number>0</Number>
+          <Type>0</Type>
+          <LineNumber>156</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>10794</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>1</BreakIfRCount>
+          <Filename>..\Core\src\empty.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression>\\empty_driverlib_src_LP_MSPM0L1306_nortos_keil\../Core/src/empty.c\156</Expression>
+        </Bp>
+      </Breakpoint>
       <WatchWindow1>
         <Ww>
           <count>0</count>
@@ -194,6 +211,16 @@
           <count>8</count>
           <WinNumber>1</WinNumber>
           <ItemText>transmitdata</ItemText>
+        </Ww>
+        <Ww>
+          <count>9</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>screenplay</ItemText>
+        </Ww>
+        <Ww>
+          <count>10</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>isgyro</ItemText>
         </Ww>
       </WatchWindow1>
       <MemoryWindow1>

@@ -12,6 +12,7 @@
 #define Z 5
 #define ADDRESS 0x9000
 #define FULLRANGE 2
+#define GYROFULLRANGE 250
 
 //memory register
 #define SMPLRT_DIV 0X19
@@ -32,6 +33,7 @@
 #define GYRO_YOUT_H 0X45
 #define GYRO_YOUT_L 0X46
 #define GYRO_ZOUT_H 0X47
+#define GYRO_ZOUT_L 0X48
 
 #define PWR_MGMT_1 0X6B
 #define PWR_MGMT_2 0X6C
@@ -47,18 +49,33 @@ uint32_t EEPROMEmulationBuffer[EEPROM_EMULATION_DATA_SIZE / sizeof(uint32_t)]={0
 
 //BLUETOOTH PARAMETER
 uint8_t data=0;
-uint8_t i=0;
+struct judgepack{
+    bool isacc;
+    bool isgyro;
+    bool isacccalced;
+    bool isgyrocalced;
+    bool isfrequencyms;
+    bool isstarted;
+    bool istransmit;
+    bool isclear;
+}judge={true,false,true,true,true,true,true,true};
+
+uint8_t screenplay=0;
 
 //I2C PARAMETER
 short accx=0,accy=0,accz=0;
 short accshowx=0,accshowy=0,accshowz=0;
 unsigned char RX_data[1] = {0x00};
 
+short gyrox=0,gyroy=0,gyroz=0;
+short gyroshowx=0,gyroshowy=0,gyroshowz=0;
+
 //OTHERS
 bool ischanged=true;
 
 //FUNCTIONS
 void msp6050_readacc(uint8_t command);
+void msp6050_readgyro(uint8_t command);
 void DirectCommands(uint8_t command, uint8_t data, uint8_t type);
 void delayUS(uint16_t us);
 void readacc(void);
@@ -70,6 +87,10 @@ void msp6050Init(void);
 void msp6050Shut(void);
 void TransformtoFloat(uint8_t x,uint8_t y,int num,uint8_t intergercount);
 void transmituartdata(char addchar, short data);
+void Computegyro(void);
+void Displaygyro(void);
+void Displayabout(void);
+void readgyro(void);
 
 int main(void)
 {
@@ -92,6 +113,9 @@ int main(void)
 	DL_TimerG_startCounter(TIMER_0_INST);
 	NVIC_EnableIRQ(TIMER_0_INST_INT_IRQN);
 	
+    DL_TimerG_startCounter(TIMER_1_INST);
+	NVIC_EnableIRQ(TIMER_1_INST_INT_IRQN);
+
     //OLED self test
 	OLED_Init();
 	OLED_Clear();
@@ -114,13 +138,61 @@ int main(void)
 	{
         if(ischanged)
         {
+            if(judge.isclear)
+            {
+                OLED_Clear();
+                judge.isclear=false;
+            }
             Computeacc();
-            transmituartdata('x',accshowx);
-            transmituartdata('y',accshowy);
-            transmituartdata('z',accshowz);
-            Displayacc();
+            if(judge.isgyro)
+            {
+                Computegyro();
+            }
+            switch(screenplay)
+            {
+                case 0:Displayacc();break;
+                case 1:Displaygyro();break;
+                case 2:Displayabout();break;
+            }
             //wait to be inserted
             ischanged=false;
+            if(judge.isfrequencyms)
+            {
+                judge.istransmit=true;
+            }
+        }
+        if(judge.istransmit)
+        {
+            if(judge.isacc)
+            {
+                if(judge.isacccalced)
+                {
+                    transmituartdata('x',accshowx);
+                    transmituartdata('y',accshowy);
+                    transmituartdata('z',accshowz);
+                }
+                else
+                {
+                    transmituartdata('x',accx);
+                    transmituartdata('y',accy);
+                    transmituartdata('z',accz);
+                }
+            }
+            if(judge.isgyro)
+            {
+                if(judge.isgyrocalced)
+                {
+                    transmituartdata('a',gyroshowx);
+                    transmituartdata('b',gyroshowy);
+                    transmituartdata('c',gyroshowz);
+                }
+                else
+                {
+                    transmituartdata('a',gyrox);
+                    transmituartdata('b',gyroy);
+                    transmituartdata('c',gyroz);
+                }
+            }
         }
         
     }
@@ -132,7 +204,30 @@ void  UART0_IRQHandler()//UARTä¸­æ–­
 		{
         case DL_UART_MAIN_IIDX_RX:
             data = DL_UART_Main_receiveData(UART0);  //ï¿½ï¿½ï¿½Í½ï¿½ï¿½Õµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-			i=data;
+			switch(data)
+            {
+                case 'A':judge.isacc=!judge.isacc;break;
+                case 'B':judge.isgyro=!judge.isgyro;break;
+                case 'C':judge.isfrequencyms=!judge.isfrequencyms;break;
+                case 'D':judge.isacccalced=!judge.isacccalced;break;
+                case 'E':judge.isgyrocalced=!judge.isgyrocalced;break;
+                case 'F':break;
+                case 'G':break;
+                case 'H':(screenplay==0)?screenplay=0:screenplay--;break;
+                case 'I':if(judge.isstarted)
+                {
+                    msp6050Shut();
+                    judge.isstarted=false;
+                }
+                else
+                {
+                    msp6050Init();
+                    judge.isstarted=true;
+                }break;
+                case 'J':(screenplay==2)?screenplay=2:screenplay++;break;
+                case 'K':break;
+            }
+            judge.isclear=true;
             DL_UART_Main_transmitDataBlocking(UART0, data);
             break;
         default:
@@ -141,10 +236,24 @@ void  UART0_IRQHandler()//UARTä¸­æ–­
 }
 
 void TIMER_0_INST_IRQHandler (void){//å®šæ—¶å™¨ä¸­æ–­
-	//DL_UART_Main_transmitDataBlocking(UART0,i);
-	//i++;
     readacc();
+    if(judge.isgyro)
+    {
+        readgyro();
+    }
     ischanged=true;
+}
+
+void TIMER_1_INST_IRQHandler (void){//å®šæ—¶å™¨ä¸­æ–­
+    if(!judge.isfrequencyms)
+    {
+    readacc();
+        if(judge.isgyro)
+        {
+            readgyro();
+        }
+    judge.istransmit=true;
+    }
 }
 
 void transmituartdata(char addchar, short data)
@@ -156,7 +265,7 @@ void transmituartdata(char addchar, short data)
     DL_UART_Main_transmitDataBlocking(UART1,'\n');
 }
 
-void Displayacc()
+void Displayacc(void)
 {
     //OLED_Clear();
     OLED_ShowString(0,0,"accx:");
@@ -165,6 +274,23 @@ void Displayacc()
     TransformtoFloat(48,2,accshowy,1);
     OLED_ShowString(0,4,"accz:");
     TransformtoFloat(48,4,accshowz,1);
+}
+
+void Displaygyro(void)
+{
+    OLED_ShowString(0,0,"gyrox:");
+    TransformtoFloat(56,0,gyroshowx,3);
+    OLED_ShowString(0,2,"gyroy:");
+    TransformtoFloat(56,2,gyroshowy,3);
+    OLED_ShowString(0,4,"gyroz:");
+    TransformtoFloat(45,4,gyroshowz,3);
+}
+
+void Displayabout(void)
+{
+    OLED_ShowString(0,0,"Motion sys");
+    OLED_ShowString(0,2,"Coded by");
+    OLED_ShowString(0,4,"Origami Shido");
 }
 
 void TransformtoFloat(uint8_t x,uint8_t y,int num,uint8_t intergercount)
@@ -191,8 +317,46 @@ void TransformtoFloat(uint8_t x,uint8_t y,int num,uint8_t intergercount)
             OLED_ShowChar(x+40,y,nums[num%10]);		
         break;
         case 2:break;//åº”è¯¥ä¸ä¼šç”¨åˆ°10gä»¥ä¸Šçš„æ»¡é‡ç¨‹ï¼Œä¸è¿‡é¢„ç•™äº†æ”¹è£…å£
+        case 3:
+        	if(num<0)
+            {
+                OLED_ShowChar(x,y,'-');
+                num=-num;
+            }
+            else
+            {
+                OLED_ShowChar(x,y,' ');
+            }
+            x+=8;
+            OLED_ShowChar(x,y,nums[num/10000]);
+            OLED_ShowChar(x+8,y,nums[(num%10000)/1000]);
+            OLED_ShowChar(x+16,y,nums[(num%1000)/100]);
+            OLED_ShowChar(x+24,y,'.');
+            OLED_ShowChar(x+32,y,nums[(num%100)/10]);
+            OLED_ShowChar(x+40,y,nums[num%10]);	
+        break;
         default:break;
     }
+}
+
+void Computegyro(void)
+{
+    gyroshowx=gyrox;
+    gyroshowy=gyroy;
+    gyroshowz=gyroz;
+    gyroshowx=gyroshowx*GYROFULLRANGE*100/32768;//25000 is 250
+    gyroshowy=gyroshowy*GYROFULLRANGE*100/32768;
+    gyroshowz=gyroshowz*GYROFULLRANGE*100/32768;
+    return;
+
+}
+
+void readgyro(void)
+{
+    msp6050_readgyro(X);
+    msp6050_readgyro(Y);
+    msp6050_readgyro(Z);
+    return;
 }
 
 void Computeacc(void)
@@ -211,7 +375,7 @@ void msp6050Init(void)
     DirectCommands(PWR_MGMT_1,0x00,W);
     DirectCommands(SMPLRT_DIV,0x07,W);//(?)
     DirectCommands(CONFIG,0x06,W);
-    DirectCommands(GYRO_CONFIG,0x18,W);
+    DirectCommands(GYRO_CONFIG,0x00,W);
     DirectCommands(ACCEL_CONFIG,0x01,W);
     return;
 }
@@ -252,6 +416,33 @@ void msp6050_readacc(uint8_t command)//åˆ†å‡½æ•°
             accz=RX_data[0]<<8;
             DirectCommands(ACCEL_ZOUT_L,0,R);
             accz+=RX_data[0];
+            break;
+    }
+    return;
+}
+
+void msp6050_readgyro(uint8_t command)
+{
+    switch(command)
+    {
+        case X:
+            
+            DirectCommands(GYRO_XOUT_H,0,R);
+            gyrox=RX_data[0]<<8;
+            DirectCommands(GYRO_XOUT_L,0,R);
+            gyrox+=RX_data[0];
+            break;
+        case Y:
+            DirectCommands(GYRO_YOUT_H,0,R);
+            gyroy=RX_data[0]<<8;
+            DirectCommands(GYRO_YOUT_L,0,R);
+            gyroy+=RX_data[0];
+            break;
+        case Z:
+            DirectCommands(GYRO_ZOUT_H,0,R);
+            gyroz=RX_data[0]<<8;
+            DirectCommands(GYRO_ZOUT_L,0,R);
+            gyroz+=RX_data[0];
             break;
     }
     return;
@@ -315,10 +506,10 @@ int read()//unfinished
 目标：
 外部中断done
 加速度读取done
-显示
+显示done
 uart发送done
 i2c读取done
-蓝牙控制
+蓝牙控制done
 硬件i2cdone
 flash读取
 
