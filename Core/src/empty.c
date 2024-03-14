@@ -47,12 +47,18 @@ uint32_t EEPROMEmulationBuffer[EEPROM_EMULATION_DATA_SIZE / sizeof(uint32_t)]={0
 
 //BLUETOOTH PARAMETER
 uint8_t data=0;
-uint8_t i=0;
+uint8_t icount=0;
 
 //I2C PARAMETER
 short accx=0,accy=0,accz=0;
 short accshowx=0,accshowy=0,accshowz=0;
 unsigned char RX_data[1] = {0x00};
+struct judgepack{
+    bool isacc;
+    bool isacccalced;
+    bool isstarted;
+}judge={true,true,true};
+
 
 //OTHERS
 bool ischanged=true;
@@ -63,7 +69,7 @@ void DirectCommands(uint8_t command, uint8_t data, uint8_t type);
 void delayUS(uint16_t us);
 void readacc(void);
 void save();
-int read();
+void read(short* accs);
 void Displayacc(void);
 void Computeacc(void);
 void msp6050Init(void);
@@ -76,11 +82,14 @@ int main(void)
 	//VARIABLES
 	unsigned int status=114514;
 	unsigned int lastnumber=0;
-
+	short breakpoint[3]={0};
+	
 	uint32_t EEPROMEmulationState;
 	uint8_t week=9;
 	SYSCFG_DL_init();
-
+	
+	read(breakpoint);
+	
 	NVIC_ClearPendingIRQ(UART0_INT_IRQn);
 	NVIC_EnableIRQ(UART0_INT_IRQn);
 
@@ -95,29 +104,40 @@ int main(void)
     //OLED self test
 	OLED_Init();
 	OLED_Clear();
-	OLED_ShowCHinese(0,0,7);//
-	OLED_ShowCHinese(18,0,8);//
-	OLED_ShowCHinese(36,0,9);
-  	OLED_ShowNum(0,2,100,3,18);
-	OLED_ShowString(1,4,"2022302121246");
-  	OLED_ShowString(2,6,"Notepad sys");
-	//delay_ms(100000);this expression may be wrong! the sysclk doesn't recognize this function in right way!
-	delay_cycles(120000000);
-	OLED_Clear();
-
+	OLED_ShowString(0,0,"breakpoint:");
+    breakpoint[0]=breakpoint[0]*FULLRANGE*10000/32768;//2g=20000
+    breakpoint[1]=breakpoint[1]*FULLRANGE*10000/32768;
+    breakpoint[2]=breakpoint[2]*FULLRANGE*10000/32768;
+    TransformtoFloat(0,2,breakpoint[0],1);
+    TransformtoFloat(0,4,breakpoint[1],1);
+    TransformtoFloat(0,6,breakpoint[2],1);
+    delay_cycles(32000000);
+    OLED_Clear();
     //FLASH INIT TEMP
-	EEPROM_TypeA_eraseAllSectors();
-    EEPROMEmulationState = EEPROM_TypeA_init(&EEPROMEmulationBuffer[0]);
-
+	/*EEPROM_TypeA_eraseAllSectors();
+    EEPROMEmulationState = EEPROM_TypeA_init(&EEPROMEmulationBuffer[0]);*/
+	
 	//DL_I2C_startControllerTransfer(I2C_0_INST, I2C_TARGET_ADDRESS, DL_I2C_CONTROLLER_DIRECTION_RX,8);
 	while (1) 
 	{
         if(ischanged)
         {
             Computeacc();
-            transmituartdata('x',accshowx);
-            transmituartdata('y',accshowy);
-            transmituartdata('z',accshowz);
+            if(judge.isacc)
+            {
+                if(judge.isacccalced)
+                {
+                    transmituartdata('x',accshowx);
+                    transmituartdata('y',accshowy);
+                    transmituartdata('z',accshowz);
+                }
+                else
+                {
+                    transmituartdata('x',accx);
+                    transmituartdata('y',accy);
+                    transmituartdata('z',accz);
+                }
+            }
             Displayacc();
             //wait to be inserted
             ischanged=false;
@@ -132,7 +152,29 @@ void  UART0_IRQHandler()//UARTä¸­æ–­
 		{
         case DL_UART_MAIN_IIDX_RX:
             data = DL_UART_Main_receiveData(UART0);  //ï¿½ï¿½ï¿½Í½ï¿½ï¿½Õµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-			i=data;
+			switch(data)
+            {
+                case 'A':judge.isacc=!judge.isacc;break;
+                case 'B':break;
+                case 'C':break;
+                case 'D':judge.isacccalced=!judge.isacccalced;break;
+                case 'E':break;
+                case 'F':break;
+                case 'G':break;
+                case 'H':break;
+                case 'I':if(judge.isstarted)
+                {
+                    msp6050Shut();
+                    judge.isstarted=false;
+                }
+                else
+                {
+                    msp6050Init();
+                    judge.isstarted=true;
+                }break;
+                case 'J':break;
+                case 'K':break;
+            }
             DL_UART_Main_transmitDataBlocking(UART0, data);
             break;
         default:
@@ -142,7 +184,7 @@ void  UART0_IRQHandler()//UARTä¸­æ–­
 
 void TIMER_0_INST_IRQHandler (void){//å®šæ—¶å™¨ä¸­æ–­
 	//DL_UART_Main_transmitDataBlocking(UART0,i);
-	//i++;
+    save();
     readacc();
     ischanged=true;
 }
@@ -289,26 +331,27 @@ void delayUS(uint16_t us) {   // Sets the delay in microseconds.
 void save()
 {
 	uint32_t dataarray[EEPROM_EMULATION_DATA_SIZE / sizeof(uint32_t)]={0};
-	EEPROM_TypeA_eraseAllSectors();
 	for(unsigned int i=0;i<EEPROM_EMULATION_DATA_SIZE/sizeof(uint32_t);i++)
 		dataarray[i]=0;
 	dataarray[0]=accx;
     dataarray[1]=accy;
     dataarray[2]=accz;
+    EEPROM_TypeA_eraseAllSectors();
 	DL_FlashCTL_unprotectSector( FLASHCTL, ADDRESS, DL_FLASHCTL_REGION_SELECT_MAIN);
 	DL_FlashCTL_programMemoryFromRAM( FLASHCTL, ADDRESS, dataarray, 3, DL_FLASHCTL_REGION_SELECT_MAIN);
 	// DL_FlashCTL_programMemoryFromRAM( FLASHCTL, ADDRESS, dataarray, 6, DL_FLASHCTL_REGION_SELECT_MAIN);
 }
 
-int read()//unfinished
+void read(short* accs)//unfinished
 {
 	uint32_t address=ADDRESS;
 	for(unsigned int i=0;i<EEPROM_EMULATION_DATA_SIZE/sizeof(uint32_t);i++)
 		EEPROMEmulationBuffer[i]=0;
 	for(int i=0;(*(uint32_t *)(address+i))!=0xFFFFFFFF;i+=4)
 		EEPROMEmulationBuffer[i/4]=*(uint32_t *)(address+i);
-	int result=EEPROMEmulationBuffer[0];
-	return result;	
+	accs[0]=EEPROMEmulationBuffer[0];
+    accs[1]=EEPROMEmulationBuffer[1];
+    accs[2]=EEPROMEmulationBuffer[2];
 }
 
 /*
@@ -318,8 +361,8 @@ int read()//unfinished
 显示
 uart发送done
 i2c读取done
-蓝牙控制
+蓝牙控制done
 硬件i2cdone
-flash读取
+flash读取done
 
 */
