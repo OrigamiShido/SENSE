@@ -47,28 +47,39 @@ uint8_t RxTemp; //ï¿½ï¿½Ê±ï¿½ï¿½ï¿½Ý£ï¿½ï¿½ï¿½Õ½ï
 //FLASH PARAMETER
 uint32_t EEPROMEmulationBuffer[EEPROM_EMULATION_DATA_SIZE / sizeof(uint32_t)]={0};
 
+uint8_t i=0;
+
 //BLUETOOTH PARAMETER
 uint8_t data=0;
+
+//I2C PARAMETER
+unsigned char RX_data[1] = {0x00};
+struct accdata{
+    short accx;
+    short accy;
+    short accz;
+    short accshowx;
+    short accshowy;
+    short accshowz;
+}acc={0,0,0,0,0,0};
+struct gyrodata{
+    short gyrox;
+    short gyroy;
+    short gyroz;
+    short gyroshowx;
+    short gyroshowy;
+    short gyroshowz;
+}gyro={0,0,0,0,0,0};
+
 struct judgepack{
     bool isacc;
     bool isgyro;
     bool isacccalced;
     bool isgyrocalced;
-    bool isfrequencyms;
     bool isstarted;
-    bool istransmit;
     bool isclear;
-}judge={true,false,true,true,true,true,true,true};
-
-uint8_t screenplay=0;
-
-//I2C PARAMETER
-short accx=0,accy=0,accz=0;
-short accshowx=0,accshowy=0,accshowz=0;
-unsigned char RX_data[1] = {0x00};
-
-short gyrox=0,gyroy=0,gyroz=0;
-short gyroshowx=0,gyroshowy=0,gyroshowz=0;
+    bool screenplay;
+}judge={true,false,true,true,true,true,true};
 
 //OTHERS
 bool ischanged=true;
@@ -89,22 +100,16 @@ void TransformtoFloat(uint8_t x,uint8_t y,int num,uint8_t intergercount);
 void transmituartdata(char addchar, short data);
 void Computegyro(void);
 void Displaygyro(void);
-void Displayabout(void);
 void readgyro(void);
 
 int main(void)
 {
 	//VARIABLES
-	unsigned int status=114514;
-	unsigned int lastnumber=0;
-
-	uint32_t EEPROMEmulationState;
-	uint8_t week=9;
+	//uint32_t EEPROMEmulationState;
 	SYSCFG_DL_init();
 
 	NVIC_ClearPendingIRQ(UART0_INT_IRQn);
 	NVIC_EnableIRQ(UART0_INT_IRQn);
-
 
     //6050 INIT
     msp6050Init();
@@ -112,26 +117,14 @@ int main(void)
     //timer enabler
 	DL_TimerG_startCounter(TIMER_0_INST);
 	NVIC_EnableIRQ(TIMER_0_INST_INT_IRQN);
-	
-    DL_TimerG_startCounter(TIMER_1_INST);
-	NVIC_EnableIRQ(TIMER_1_INST_INT_IRQN);
 
     //OLED self test
 	OLED_Init();
 	OLED_Clear();
-	OLED_ShowCHinese(0,0,7);//
-	OLED_ShowCHinese(18,0,8);//
-	OLED_ShowCHinese(36,0,9);
-  	OLED_ShowNum(0,2,100,3,18);
-	OLED_ShowString(1,4,"2022302121246");
-  	OLED_ShowString(2,6,"Notepad sys");
-	//delay_ms(100000);this expression may be wrong! the sysclk doesn't recognize this function in right way!
-	delay_cycles(120000000);
-	OLED_Clear();
 
     //FLASH INIT TEMP
 	EEPROM_TypeA_eraseAllSectors();
-    EEPROMEmulationState = EEPROM_TypeA_init(&EEPROMEmulationBuffer[0]);
+    //EEPROMEmulationState = EEPROM_TypeA_init(&EEPROMEmulationBuffer[0]);
 
 	//DL_I2C_startControllerTransfer(I2C_0_INST, I2C_TARGET_ADDRESS, DL_I2C_CONTROLLER_DIRECTION_RX,8);
 	while (1) 
@@ -144,57 +137,47 @@ int main(void)
                 judge.isclear=false;
             }
             Computeacc();
-            if(judge.isgyro)
-            {
-                Computegyro();
-            }
-            switch(screenplay)
-            {
-                case 0:Displayacc();break;
-                case 1:Displaygyro();break;
-                case 2:Displayabout();break;
-            }
-            //wait to be inserted
-            ischanged=false;
-            if(judge.isfrequencyms)
-            {
-                judge.istransmit=true;
-            }
-        }
-        if(judge.istransmit)
-        {
             if(judge.isacc)
             {
                 if(judge.isacccalced)
                 {
-                    transmituartdata('x',accshowx);
-                    transmituartdata('y',accshowy);
-                    transmituartdata('z',accshowz);
+                    transmituartdata('x',acc.accshowx);
+                    transmituartdata('y',acc.accshowy);
+                    transmituartdata('z',acc.accshowz);
                 }
                 else
                 {
-                    transmituartdata('x',accx);
-                    transmituartdata('y',accy);
-                    transmituartdata('z',accz);
+                    transmituartdata('x',acc.accx);
+                    transmituartdata('y',acc.accy);
+                    transmituartdata('z',acc.accz);
                 }
             }
+            if(judge.screenplay)
+            {
+                Displayacc();
+            }
+            Computegyro();
             if(judge.isgyro)
             {
                 if(judge.isgyrocalced)
                 {
-                    transmituartdata('a',gyroshowx);
-                    transmituartdata('b',gyroshowy);
-                    transmituartdata('c',gyroshowz);
+                    transmituartdata('a',gyro.gyroshowx);
+                    transmituartdata('b',gyro.gyroshowy);
+                    transmituartdata('c',gyro.gyroshowz);
                 }
                 else
                 {
-                    transmituartdata('a',gyrox);
-                    transmituartdata('b',gyroy);
-                    transmituartdata('c',gyroz);
+                    transmituartdata('a',gyro.gyrox);
+                    transmituartdata('b',gyro.gyroy);
+                    transmituartdata('c',gyro.gyroz);
                 }
             }
+            if(!judge.screenplay)
+            {
+                Displaygyro();
+            }
+            ischanged=false;
         }
-        
     }
 }
 
@@ -208,12 +191,12 @@ void  UART0_IRQHandler()//UARTä¸­æ–­
             {
                 case 'A':judge.isacc=!judge.isacc;break;
                 case 'B':judge.isgyro=!judge.isgyro;break;
-                case 'C':judge.isfrequencyms=!judge.isfrequencyms;break;
+                case 'C':break;
                 case 'D':judge.isacccalced=!judge.isacccalced;break;
                 case 'E':judge.isgyrocalced=!judge.isgyrocalced;break;
                 case 'F':break;
                 case 'G':break;
-                case 'H':(screenplay==0)?screenplay=0:screenplay--;break;
+                case 'H':judge.screenplay=true;judge.isclear=true;break;
                 case 'I':if(judge.isstarted)
                 {
                     msp6050Shut();
@@ -224,10 +207,9 @@ void  UART0_IRQHandler()//UARTä¸­æ–­
                     msp6050Init();
                     judge.isstarted=true;
                 }break;
-                case 'J':(screenplay==2)?screenplay=2:screenplay++;break;
+                case 'J':judge.screenplay=false;judge.isclear=true;break;
                 case 'K':break;
             }
-            judge.isclear=true;
             DL_UART_Main_transmitDataBlocking(UART0, data);
             break;
         default:
@@ -235,25 +217,16 @@ void  UART0_IRQHandler()//UARTä¸­æ–­
 		}
 }
 
-void TIMER_0_INST_IRQHandler (void){//å®šæ—¶å™¨ä¸­æ–­
+void TIMER_0_INST_IRQHandler(void){//å®šæ—¶å™¨ä¸­æ–­
     readacc();
-    if(judge.isgyro)
+    readgyro();
+    i++;
+    if(i==10)
     {
-        readgyro();
+        save();
+        i=0;
     }
     ischanged=true;
-}
-
-void TIMER_1_INST_IRQHandler (void){//å®šæ—¶å™¨ä¸­æ–­
-    if(!judge.isfrequencyms)
-    {
-    readacc();
-        if(judge.isgyro)
-        {
-            readgyro();
-        }
-    judge.istransmit=true;
-    }
 }
 
 void transmituartdata(char addchar, short data)
@@ -269,28 +242,21 @@ void Displayacc(void)
 {
     //OLED_Clear();
     OLED_ShowString(0,0,"accx:");
-    TransformtoFloat(48,0,accshowx,1);
+    TransformtoFloat(48,0,acc.accshowx,1);
     OLED_ShowString(0,2,"accy:");
-    TransformtoFloat(48,2,accshowy,1);
+    TransformtoFloat(48,2,acc.accshowy,1);
     OLED_ShowString(0,4,"accz:");
-    TransformtoFloat(48,4,accshowz,1);
+    TransformtoFloat(48,4,acc.accshowz,1);
 }
 
 void Displaygyro(void)
 {
     OLED_ShowString(0,0,"gyrox:");
-    TransformtoFloat(56,0,gyroshowx,3);
+    TransformtoFloat(56,0,gyro.gyroshowx,3);
     OLED_ShowString(0,2,"gyroy:");
-    TransformtoFloat(56,2,gyroshowy,3);
+    TransformtoFloat(56,2,gyro.gyroshowy,3);
     OLED_ShowString(0,4,"gyroz:");
-    TransformtoFloat(45,4,gyroshowz,3);
-}
-
-void Displayabout(void)
-{
-    OLED_ShowString(0,0,"Motion sys");
-    OLED_ShowString(0,2,"Coded by");
-    OLED_ShowString(0,4,"Origami Shido");
+    TransformtoFloat(56,4,gyro.gyroshowz,3);
 }
 
 void TransformtoFloat(uint8_t x,uint8_t y,int num,uint8_t intergercount)
@@ -331,7 +297,7 @@ void TransformtoFloat(uint8_t x,uint8_t y,int num,uint8_t intergercount)
             OLED_ShowChar(x,y,nums[num/10000]);
             OLED_ShowChar(x+8,y,nums[(num%10000)/1000]);
             OLED_ShowChar(x+16,y,nums[(num%1000)/100]);
-            OLED_ShowChar(x+24,y,'.');
+            //OLED_ShowChar(x+24,y,'.');
             OLED_ShowChar(x+32,y,nums[(num%100)/10]);
             OLED_ShowChar(x+40,y,nums[num%10]);	
         break;
@@ -341,12 +307,12 @@ void TransformtoFloat(uint8_t x,uint8_t y,int num,uint8_t intergercount)
 
 void Computegyro(void)
 {
-    gyroshowx=gyrox;
-    gyroshowy=gyroy;
-    gyroshowz=gyroz;
-    gyroshowx=gyroshowx*GYROFULLRANGE*100/32768;//25000 is 250
-    gyroshowy=gyroshowy*GYROFULLRANGE*100/32768;
-    gyroshowz=gyroshowz*GYROFULLRANGE*100/32768;
+    gyro.gyroshowx=gyro.gyrox;
+    gyro.gyroshowy=gyro.gyroy;
+    gyro.gyroshowz=gyro.gyroz;
+    gyro.gyroshowx=gyro.gyroshowx*GYROFULLRANGE*100/32768;//25000 is 250
+    gyro.gyroshowy=gyro.gyroshowy*GYROFULLRANGE*100/32768;
+    gyro.gyroshowz=gyro.gyroshowz*GYROFULLRANGE*100/32768;
     return;
 
 }
@@ -361,12 +327,12 @@ void readgyro(void)
 
 void Computeacc(void)
 {
-    accshowx=accx;
-    accshowy=accy;
-    accshowz=accz;
-    accshowx=accshowx*FULLRANGE*10000/32768;//2g=20000
-    accshowy=accshowy*FULLRANGE*10000/32768;
-    accshowz=accshowz*FULLRANGE*10000/32768;
+    acc.accshowx=acc.accx;
+    acc.accshowy=acc.accy;
+    acc.accshowz=acc.accz;
+    acc.accshowx=acc.accshowx*FULLRANGE*10000/32768;//2g=20000
+    acc.accshowy=acc.accshowy*FULLRANGE*10000/32768;
+    acc.accshowz=acc.accshowz*FULLRANGE*10000/32768;
     return;
 }
 
@@ -401,21 +367,21 @@ void msp6050_readacc(uint8_t command)//åˆ†å‡½æ•°
         case X:
             
             DirectCommands(ACCEL_XOUT_H,0,R);
-            accx=RX_data[0]<<8;
+            acc.accx=RX_data[0]<<8;
             DirectCommands(ACCEL_XOUT_L,0,R);
-            accx+=RX_data[0];
+            acc.accx+=RX_data[0];
             break;
         case Y:
             DirectCommands(ACCEL_YOUT_H,0,R);
-            accy=RX_data[0]<<8;
+            acc.accy=RX_data[0]<<8;
             DirectCommands(ACCEL_YOUT_L,0,R);
-            accy+=RX_data[0];
+            acc.accy+=RX_data[0];
             break;
         case Z:
             DirectCommands(ACCEL_ZOUT_H,0,R);
-            accz=RX_data[0]<<8;
+            acc.accz=RX_data[0]<<8;
             DirectCommands(ACCEL_ZOUT_L,0,R);
-            accz+=RX_data[0];
+            acc.accz+=RX_data[0];
             break;
     }
     return;
@@ -426,23 +392,22 @@ void msp6050_readgyro(uint8_t command)
     switch(command)
     {
         case X:
-            
             DirectCommands(GYRO_XOUT_H,0,R);
-            gyrox=RX_data[0]<<8;
+            gyro.gyrox=RX_data[0]<<8;
             DirectCommands(GYRO_XOUT_L,0,R);
-            gyrox+=RX_data[0];
+            gyro.gyrox+=RX_data[0];
             break;
         case Y:
             DirectCommands(GYRO_YOUT_H,0,R);
-            gyroy=RX_data[0]<<8;
+            gyro.gyroy=RX_data[0]<<8;
             DirectCommands(GYRO_YOUT_L,0,R);
-            gyroy+=RX_data[0];
+            gyro.gyroy+=RX_data[0];
             break;
         case Z:
             DirectCommands(GYRO_ZOUT_H,0,R);
-            gyroz=RX_data[0]<<8;
+            gyro.gyroz=RX_data[0]<<8;
             DirectCommands(GYRO_ZOUT_L,0,R);
-            gyroz+=RX_data[0];
+            gyro.gyroz+=RX_data[0];
             break;
     }
     return;
@@ -483,9 +448,9 @@ void save()
 	EEPROM_TypeA_eraseAllSectors();
 	for(unsigned int i=0;i<EEPROM_EMULATION_DATA_SIZE/sizeof(uint32_t);i++)
 		dataarray[i]=0;
-	dataarray[0]=accx;
-    dataarray[1]=accy;
-    dataarray[2]=accz;
+	dataarray[0]=acc.accx;
+    dataarray[1]=acc.accy;
+    dataarray[2]=acc.accz;
 	DL_FlashCTL_unprotectSector( FLASHCTL, ADDRESS, DL_FLASHCTL_REGION_SELECT_MAIN);
 	DL_FlashCTL_programMemoryFromRAM( FLASHCTL, ADDRESS, dataarray, 3, DL_FLASHCTL_REGION_SELECT_MAIN);
 	// DL_FlashCTL_programMemoryFromRAM( FLASHCTL, ADDRESS, dataarray, 6, DL_FLASHCTL_REGION_SELECT_MAIN);
