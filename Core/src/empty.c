@@ -32,10 +32,13 @@
 #define GYRO_YOUT_H 0X45
 #define GYRO_YOUT_L 0X46
 #define GYRO_ZOUT_H 0X47
+#define GYRO_ZOUT_L 0X48
 
 #define PWR_MGMT_1 0X6B
 #define PWR_MGMT_2 0X6C
 #define WHO_AM_I 0X75
+
+#define GYROFULLRANGE 120
 
 //OLED PARAMETER
 uint8_t TxPacket[4] = {0x90, 0x00, 0x00, 0x00};  //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
@@ -50,57 +53,72 @@ uint8_t data=0;
 uint8_t icount=0;
 
 //I2C PARAMETER
-short accx=0,accy=0,accz=0;
-short accshowx=0,accshowy=0,accshowz=0;
 unsigned char RX_data[1] = {0x00};
+unsigned char RX_datag[1]={0x00};
 struct judgepack{
     bool isacc;
     bool isacccalced;
     bool isstarted;
-}judge={true,true,true};
+    bool isgyro;
+    bool screendisplay;
+    bool isclear;
+}judge={true,true,true,true,true,false};
 
+struct gyrodata{
+    short gyrox;
+    short gyroy;
+    short gyroz;
+    short gyroshowx;
+    short gyroshowy;
+    short gyroshowz;
+    };
+
+struct accdata{
+    short accx;
+    short accy;
+    short accz;
+    short accshowx;
+    short accshowy;
+    short accshowz;
+    };
 
 //OTHERS
 bool ischanged=true;
 
 //FUNCTIONS
-void msp6050_readacc(uint8_t command);
+void msp6050_readacc(uint8_t command,struct accdata* acc);
 void DirectCommands(uint8_t command, uint8_t data, uint8_t type);
 void delayUS(uint16_t us);
-void readacc(void);
-void save();
+void readacc(struct accdata* acc);
+void save(struct accdata acc,struct gyrodata gyro);
 void read(short* accs);
-void Displayacc(void);
-void Computeacc(void);
+void Displayacc(struct accdata acc);
+void Displaygyro(struct gyrodata gyro);
+void Computeacc(struct accdata* acc);
 void msp6050Init(void);
 void msp6050Shut(void);
 void TransformtoFloat(uint8_t x,uint8_t y,int num,uint8_t intergercount);
-void transmituartdata(char addchar, short data);
+void transmituartdata(char addchar, short data,bool uartport);
+void readgyro(struct gyrodata* gyro);
+void msp6050_readgyro(uint8_t command,struct gyrodata* gyro);
+void Computegyro(struct gyrodata* gyro);
 
 int main(void)
 {
 	//VARIABLES
 	unsigned int status=114514;
 	unsigned int lastnumber=0;
-	short breakpoint[3]={0};
+	short breakpoint[6]={0};
 	
 	uint32_t EEPROMEmulationState;
-	uint8_t week=9;
+	uint8_t i=0;
+
+    struct gyrodata gyro={0,0,0,0,0,0};
+    struct accdata acc={0,0,0,0,0,0};
 	SYSCFG_DL_init();
 	
 	read(breakpoint);
-	
-	NVIC_ClearPendingIRQ(UART0_INT_IRQn);
-	NVIC_EnableIRQ(UART0_INT_IRQn);
 
-
-    //6050 INIT
-    msp6050Init();
-
-    //timer enabler
-	DL_TimerG_startCounter(TIMER_0_INST);
-	NVIC_EnableIRQ(TIMER_0_INST_INT_IRQN);
-	
     //OLED self test
 	OLED_Init();
 	OLED_Clear();
@@ -108,11 +126,28 @@ int main(void)
     breakpoint[0]=breakpoint[0]*FULLRANGE*10000/32768;//2g=20000
     breakpoint[1]=breakpoint[1]*FULLRANGE*10000/32768;
     breakpoint[2]=breakpoint[2]*FULLRANGE*10000/32768;
+    breakpoint[3]=breakpoint[3]*GYROFULLRANGE*100/32768;//25000 is 250
+    breakpoint[4]=breakpoint[4]*GYROFULLRANGE*100/32768;
+    breakpoint[5]=breakpoint[5]*GYROFULLRANGE*100/32768;
     TransformtoFloat(0,2,breakpoint[0],1);
     TransformtoFloat(0,4,breakpoint[1],1);
     TransformtoFloat(0,6,breakpoint[2],1);
+    TransformtoFloat(64,2,breakpoint[3],2);
+    TransformtoFloat(64,4,breakpoint[4],2);
+    TransformtoFloat(64,6,breakpoint[5],2);
     delay_cycles(32000000);
     OLED_Clear();
+	
+	NVIC_ClearPendingIRQ(UART0_INT_IRQn);
+	NVIC_EnableIRQ(UART0_INT_IRQn);
+
+    //6050 INIT
+    msp6050Init();
+
+    //timer enabler
+	DL_TimerG_startCounter(TIMER_0_INST);
+	NVIC_EnableIRQ(TIMER_0_INST_INT_IRQN);
+
     //FLASH INIT TEMP
 	/*EEPROM_TypeA_eraseAllSectors();
     EEPROMEmulationState = EEPROM_TypeA_init(&EEPROMEmulationBuffer[0]);*/
@@ -122,24 +157,85 @@ int main(void)
 	{
         if(ischanged)
         {
-            Computeacc();
+            if(judge.isclear)
+            {
+                OLED_Clear();
+                judge.isclear=false;
+            }
+            readacc(&acc);
+            readgyro(&gyro);
+            save(acc,gyro);
+            Computeacc(&acc);
+            Computegyro(&gyro);
             if(judge.isacc)
             {
                 if(judge.isacccalced)
                 {
-                    transmituartdata('x',accshowx);
-                    transmituartdata('y',accshowy);
-                    transmituartdata('z',accshowz);
+                    transmituartdata('x',acc.accshowx,1);
+                    transmituartdata('y',acc.accshowy,1);
+                    transmituartdata('z',acc.accshowz,1);
                 }
                 else
                 {
-                    transmituartdata('x',accx);
-                    transmituartdata('y',accy);
-                    transmituartdata('z',accz);
+                    transmituartdata('x',acc.accx,1);
+                    transmituartdata('y',acc.accy,1);
+                    transmituartdata('z',acc.accz,1);
                 }
             }
-            Displayacc();
-            //wait to be inserted
+            if(judge.screendisplay)
+                Displayacc(acc);
+            if(judge.isgyro)
+            {
+                if(judge.isacccalced)
+                {
+                    transmituartdata('a',gyro.gyroshowx,1);
+                    transmituartdata('b',gyro.gyroshowy,1);
+                    transmituartdata('c',gyro.gyroshowz,1);
+                }
+                else
+                {
+                    transmituartdata('a',gyro.gyrox,1);
+                    transmituartdata('b',gyro.gyroy,1);
+                    transmituartdata('c',gyro.gyroz,1);
+                }
+            }
+            if(!judge.screendisplay)
+                Displaygyro(gyro);
+            i++;
+            if(i==10)
+            {
+                i=0;
+                if(judge.isacc)
+                {
+                    if(judge.isacccalced)
+                    {
+                        transmituartdata('x',acc.accshowx,0);
+                        transmituartdata('y',acc.accshowy,0);
+                        transmituartdata('z',acc.accshowz,0);
+                    }
+                    else
+                    {
+                        transmituartdata('x',acc.accx,0);
+                        transmituartdata('y',acc.accy,0);
+                        transmituartdata('z',acc.accz,0);
+                    }
+                }
+                if(judge.isgyro)
+                {
+                    if(judge.isacccalced)
+                    {
+                        transmituartdata('a',gyro.gyroshowx,0);
+                        transmituartdata('b',gyro.gyroshowy,0);
+                        transmituartdata('c',gyro.gyroshowz,0);
+                    }
+                    else
+                    {
+                        transmituartdata('a',gyro.gyrox,0);
+                        transmituartdata('b',gyro.gyroy,0);
+                        transmituartdata('c',gyro.gyroz,0);
+                    }
+                }
+            }
             ischanged=false;
         }
         
@@ -155,13 +251,13 @@ void  UART0_IRQHandler()//UARTä¸­æ–­
 			switch(data)
             {
                 case 'A':judge.isacc=!judge.isacc;break;
-                case 'B':break;
+                case 'B':judge.isgyro=!judge.isgyro;break;
                 case 'C':break;
                 case 'D':judge.isacccalced=!judge.isacccalced;break;
                 case 'E':break;
                 case 'F':break;
                 case 'G':break;
-                case 'H':break;
+                case 'H':judge.screendisplay=true;break;
                 case 'I':if(judge.isstarted)
                 {
                     msp6050Shut();
@@ -172,10 +268,11 @@ void  UART0_IRQHandler()//UARTä¸­æ–­
                     msp6050Init();
                     judge.isstarted=true;
                 }break;
-                case 'J':break;
+                case 'J':judge.screendisplay=false;break;
                 case 'K':break;
             }
             DL_UART_Main_transmitDataBlocking(UART0, data);
+            judge.isclear=true;
             break;
         default:
             break;
@@ -184,29 +281,47 @@ void  UART0_IRQHandler()//UARTä¸­æ–­
 
 void TIMER_0_INST_IRQHandler (void){//å®šæ—¶å™¨ä¸­æ–­
 	//DL_UART_Main_transmitDataBlocking(UART0,i);
-    save();
-    readacc();
     ischanged=true;
 }
 
-void transmituartdata(char addchar, short data)
+void transmituartdata(char addchar, short data, bool uartport)
 {
     uint8_t transmitdata[2]={data>>8,(uint8_t)data};
-    DL_UART_Main_transmitDataBlocking(UART1,addchar);
-    DL_UART_Main_transmitDataBlocking(UART1,transmitdata[0]);
-    DL_UART_Main_transmitDataBlocking(UART1,transmitdata[1]);
-    DL_UART_Main_transmitDataBlocking(UART1,'\n');
+    if(uartport)
+    {
+        DL_UART_Main_transmitDataBlocking(UART1,addchar);
+        DL_UART_Main_transmitDataBlocking(UART1,transmitdata[0]);
+        DL_UART_Main_transmitDataBlocking(UART1,transmitdata[1]);
+        DL_UART_Main_transmitDataBlocking(UART1,'\n');
+    }
+    else
+    {
+        DL_UART_Main_transmitDataBlocking(UART0,addchar);
+        DL_UART_Main_transmitDataBlocking(UART0,transmitdata[0]);
+        DL_UART_Main_transmitDataBlocking(UART0,transmitdata[1]);
+        DL_UART_Main_transmitDataBlocking(UART0,'\n');
+    }
 }
 
-void Displayacc()
+void Displayacc(struct accdata acc)
 {
     //OLED_Clear();
     OLED_ShowString(0,0,"accx:");
-    TransformtoFloat(48,0,accshowx,1);
+    TransformtoFloat(48,0,acc.accshowx,1);
     OLED_ShowString(0,2,"accy:");
-    TransformtoFloat(48,2,accshowy,1);
+    TransformtoFloat(48,2,acc.accshowy,1);
     OLED_ShowString(0,4,"accz:");
-    TransformtoFloat(48,4,accshowz,1);
+    TransformtoFloat(48,4,acc.accshowz,1);
+}
+
+void Displaygyro(struct gyrodata gyro)
+{
+    OLED_ShowString(0,0,"gyrox:");
+    TransformtoFloat(56,0,gyro.gyroshowx,2);
+    OLED_ShowString(0,2,"gyroy:");
+    TransformtoFloat(56,2,gyro.gyroshowy,2);
+    OLED_ShowString(0,4,"gyroz:");
+    TransformtoFloat(56,4,gyro.gyroshowz,2);
 }
 
 void TransformtoFloat(uint8_t x,uint8_t y,int num,uint8_t intergercount)
@@ -232,19 +347,36 @@ void TransformtoFloat(uint8_t x,uint8_t y,int num,uint8_t intergercount)
             OLED_ShowChar(x+32,y,nums[(num%100)/10]);
             OLED_ShowChar(x+40,y,nums[num%10]);		
         break;
-        case 2:break;//åº”è¯¥ä¸ä¼šç”¨åˆ°10gä»¥ä¸Šçš„æ»¡é‡ç¨‹ï¼Œä¸è¿‡é¢„ç•™äº†æ”¹è£…å£
+        case 2:
+        	if(num<0)
+            {
+                OLED_ShowChar(x,y,'-');
+                num=-num;
+            }
+            else
+            {
+                OLED_ShowChar(x,y,' ');
+            }
+            x+=8;
+            OLED_ShowChar(x,y,nums[num/10000]);
+            OLED_ShowChar(x+8,y,nums[(num%10000)/1000]);
+            OLED_ShowChar(x+16,y,nums[(num%1000)/100]);
+            OLED_ShowChar(x+24,y,'.');
+            OLED_ShowChar(x+32,y,nums[(num%100)/10]);
+            OLED_ShowChar(x+40,y,nums[num%10]);		
+        break;
         default:break;
     }
 }
 
-void Computeacc(void)
+void Computeacc(struct accdata* acc)
 {
-    accshowx=accx;
-    accshowy=accy;
-    accshowz=accz;
-    accshowx=accshowx*FULLRANGE*10000/32768;//2g=20000
-    accshowy=accshowy*FULLRANGE*10000/32768;
-    accshowz=accshowz*FULLRANGE*10000/32768;
+    acc->accshowx=acc->accx;
+    acc->accshowy=acc->accy;
+    acc->accshowz=acc->accz;
+    acc->accshowx=acc->accshowx*FULLRANGE*10000/32768;//2g=20000
+    acc->accshowy=acc->accshowy*FULLRANGE*10000/32768;
+    acc->accshowz=acc->accshowz*FULLRANGE*10000/32768;
     return;
 }
 
@@ -253,7 +385,7 @@ void msp6050Init(void)
     DirectCommands(PWR_MGMT_1,0x00,W);
     DirectCommands(SMPLRT_DIV,0x07,W);//(?)
     DirectCommands(CONFIG,0x06,W);
-    DirectCommands(GYRO_CONFIG,0x18,W);
+    DirectCommands(GYRO_CONFIG,0x00,W);
     DirectCommands(ACCEL_CONFIG,0x01,W);
     return;
 }
@@ -264,36 +396,36 @@ void msp6050Shut(void)
     return;
 }
 
-void readacc(void)//è¯»åŠ é€Ÿåº¦
+void readacc(struct accdata* acc)//è¯»åŠ é€Ÿåº¦
 {
-    msp6050_readacc(X);
-    msp6050_readacc(Y);
-    msp6050_readacc(Z);
+    msp6050_readacc(X,acc);
+    msp6050_readacc(Y,acc);
+    msp6050_readacc(Z,acc);
     return;
 }
 
-void msp6050_readacc(uint8_t command)//åˆ†å‡½æ•°
+void msp6050_readacc(uint8_t command,struct accdata* acc)//åˆ†å‡½æ•°
 {
     switch(command)
     {
         case X:
             
             DirectCommands(ACCEL_XOUT_H,0,R);
-            accx=RX_data[0]<<8;
+            acc->accx=RX_data[0]<<8;
             DirectCommands(ACCEL_XOUT_L,0,R);
-            accx+=RX_data[0];
+            acc->accx+=RX_data[0];
             break;
         case Y:
             DirectCommands(ACCEL_YOUT_H,0,R);
-            accy=RX_data[0]<<8;
+            acc->accy=RX_data[0]<<8;
             DirectCommands(ACCEL_YOUT_L,0,R);
-            accy+=RX_data[0];
+            acc->accy+=RX_data[0];
             break;
         case Z:
             DirectCommands(ACCEL_ZOUT_H,0,R);
-            accz=RX_data[0]<<8;
+            acc->accz=RX_data[0]<<8;
             DirectCommands(ACCEL_ZOUT_L,0,R);
-            accz+=RX_data[0];
+            acc->accz+=RX_data[0];
             break;
     }
     return;
@@ -328,17 +460,20 @@ void delayUS(uint16_t us) {   // Sets the delay in microseconds.
         delay_cycles(32000);
 }
 
-void save()
+void save(struct accdata acc,struct gyrodata gyro)
 {
 	uint32_t dataarray[EEPROM_EMULATION_DATA_SIZE / sizeof(uint32_t)]={0};
 	for(unsigned int i=0;i<EEPROM_EMULATION_DATA_SIZE/sizeof(uint32_t);i++)
 		dataarray[i]=0;
-	dataarray[0]=accx;
-    dataarray[1]=accy;
-    dataarray[2]=accz;
+	dataarray[0]=acc.accx;
+    dataarray[1]=acc.accy;
+    dataarray[2]=acc.accz;
+    dataarray[3]=gyro.gyrox;
+    dataarray[4]=gyro.gyroy;
+    dataarray[5]=gyro.gyroz;
     EEPROM_TypeA_eraseAllSectors();
 	DL_FlashCTL_unprotectSector( FLASHCTL, ADDRESS, DL_FLASHCTL_REGION_SELECT_MAIN);
-	DL_FlashCTL_programMemoryFromRAM( FLASHCTL, ADDRESS, dataarray, 3, DL_FLASHCTL_REGION_SELECT_MAIN);
+	DL_FlashCTL_programMemoryFromRAM( FLASHCTL, ADDRESS, dataarray, 6, DL_FLASHCTL_REGION_SELECT_MAIN);
 	// DL_FlashCTL_programMemoryFromRAM( FLASHCTL, ADDRESS, dataarray, 6, DL_FLASHCTL_REGION_SELECT_MAIN);
 }
 
@@ -352,6 +487,54 @@ void read(short* accs)//unfinished
 	accs[0]=EEPROMEmulationBuffer[0];
     accs[1]=EEPROMEmulationBuffer[1];
     accs[2]=EEPROMEmulationBuffer[2];
+    accs[3]=EEPROMEmulationBuffer[3];
+    accs[4]=EEPROMEmulationBuffer[4];
+    accs[5]=EEPROMEmulationBuffer[5];
+}
+
+void readgyro(struct gyrodata* gyro)
+{
+    msp6050_readgyro(X,gyro);
+    msp6050_readgyro(Y,gyro);
+    msp6050_readgyro(Z,gyro);
+    return;
+}
+
+void msp6050_readgyro(uint8_t command,struct gyrodata* gyro)
+{
+    switch(command)
+    {
+        case X:
+            DirectCommands(GYRO_XOUT_H,0,R);
+            gyro->gyrox=RX_data[0]<<8;
+            DirectCommands(GYRO_XOUT_L,0,R);
+            gyro->gyrox+=RX_data[0];
+            break;
+        case Y:
+            DirectCommands(GYRO_YOUT_H,0,R);
+            gyro->gyroy=RX_data[0]<<8;
+            DirectCommands(GYRO_YOUT_L,0,R);
+            gyro->gyroy+=RX_data[0];
+            break;
+        case Z:
+            DirectCommands(GYRO_ZOUT_H,0,R);
+            gyro->gyroz=RX_data[0]<<8;
+            DirectCommands(GYRO_ZOUT_L,0,R);
+            gyro->gyroz+=RX_data[0];
+            break;
+    }
+    return;
+}
+
+void Computegyro(struct gyrodata* gyro)
+{
+    gyro->gyroshowx=gyro->gyrox;
+    gyro->gyroshowy=gyro->gyroy;
+    gyro->gyroshowz=gyro->gyroz;
+    gyro->gyroshowx=gyro->gyroshowx*GYROFULLRANGE*100/32768;//25000 is 250
+    gyro->gyroshowy=gyro->gyroshowy*GYROFULLRANGE*100/32768;
+    gyro->gyroshowz=gyro->gyroshowz*GYROFULLRANGE*100/32768;
+    return;
 }
 
 /*
