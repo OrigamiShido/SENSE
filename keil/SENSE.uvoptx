@@ -154,16 +154,32 @@
           <Type>0</Type>
           <LineNumber>154</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>0</Address>
+          <Address>8612</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>0</BreakIfRCount>
+          <BreakIfRCount>1</BreakIfRCount>
           <Filename>..\Core\src\empty.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression></Expression>
+          <Expression>\\empty_driverlib_src_LP_MSPM0L1306_nortos_keil\../Core/src/empty.c\154</Expression>
+        </Bp>
+        <Bp>
+          <Number>1</Number>
+          <Type>0</Type>
+          <LineNumber>405</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>9564</Address>
+          <ByteObject>0</ByteObject>
+          <HtxType>0</HtxType>
+          <ManyObjects>0</ManyObjects>
+          <SizeOfObject>0</SizeOfObject>
+          <BreakByAccess>0</BreakByAccess>
+          <BreakIfRCount>1</BreakIfRCount>
+          <Filename>..\Core\src\empty.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression>\\empty_driverlib_src_LP_MSPM0L1306_nortos_keil\../Core/src/empty.c\405</Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>
@@ -271,6 +287,11 @@
           <count>20</count>
           <WinNumber>1</WinNumber>
           <ItemText>accz</ItemText>
+        </Ww>
+        <Ww>
+          <count>21</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>RX_datag</ItemText>
         </Ww>
       </WatchWindow1>
       <MemoryWindow1>

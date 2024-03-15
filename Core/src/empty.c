@@ -142,6 +142,8 @@ int main(void)
 	DL_TimerG_startCounter(TIMER_0_INST);
 	NVIC_EnableIRQ(TIMER_0_INST_INT_IRQN);
 
+	DL_TimerG_startCounter(TIMER_1_INST);
+	NVIC_EnableIRQ(TIMER_1_INST_INT_IRQN);
     //FLASH INIT TEMP
 	/*EEPROM_TypeA_eraseAllSectors();
     EEPROMEmulationState = EEPROM_TypeA_init(&EEPROMEmulationBuffer[0]);*/
@@ -216,16 +218,7 @@ void  UART0_IRQHandler()//UARTä¸­æ–­
                 case 'F':break;
                 case 'G':break;
                 case 'H':judge.screendisplay=true;break;
-                case 'I':if(judge.isstarted)
-                {
-                    msp6050Shut();
-                    judge.isstarted=false;
-                }
-                else
-                {
-                    msp6050Init();
-                    judge.isstarted=true;
-                }break;
+                case 'I':break;
                 case 'J':judge.screendisplay=false;break;
                 case 'K':break;
             }
@@ -240,6 +233,12 @@ void  UART0_IRQHandler()//UARTä¸­æ–­
 void TIMER_0_INST_IRQHandler (void){//å®šæ—¶å™¨ä¸­æ–­
 	//DL_UART_Main_transmitDataBlocking(UART0,i);
     ischanged=true;
+}
+
+void TIMER_1_INST_IRQHandler (void)
+{
+    uint8_t status=(judge.isacc<<5)|(judge.isgyro<<4)|(judge.isacccalced<<3)|(judge.isstarted<<2)|(judge.screendisplay<<1)|judge.isclear;
+    DL_UART_Main_transmitDataBlocking(UART0,status);
 }
 
 void transmituartdata(char addchar, short data, bool uartport)
@@ -442,6 +441,7 @@ void read(short* accs)//unfinished
 	accs[0]=EEPROMEmulationBuffer[0];
     accs[1]=EEPROMEmulationBuffer[1];
     accs[2]=EEPROMEmulationBuffer[2];
+    
 }
 
 void readgyro(struct gyrodata* gyro)
@@ -488,16 +488,3 @@ void Computegyro(struct gyrodata* gyro)
     gyro->gyroshowz=gyro->gyroshowz*GYROFULLRANGE*100/32768;
     return;
 }
-
-/*
-目标：
-外部中断done
-加速度读取done
-显示
-uart发送done
-i2c读取done
-蓝牙控制done
-硬件i2cdone
-flash读取done
-
-*/
