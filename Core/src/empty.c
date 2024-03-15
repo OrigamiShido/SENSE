@@ -108,7 +108,7 @@ int main(void)
 	//VARIABLES
 	unsigned int status=114514;
 	unsigned int lastnumber=0;
-	short breakpoint[6]={0};
+	short breakpoint[3]={0};
 	
 	uint32_t EEPROMEmulationState;
 	uint8_t i=0;
@@ -126,15 +126,9 @@ int main(void)
     breakpoint[0]=breakpoint[0]*FULLRANGE*10000/32768;//2g=20000
     breakpoint[1]=breakpoint[1]*FULLRANGE*10000/32768;
     breakpoint[2]=breakpoint[2]*FULLRANGE*10000/32768;
-    breakpoint[3]=breakpoint[3]*GYROFULLRANGE*100/32768;//25000 is 250
-    breakpoint[4]=breakpoint[4]*GYROFULLRANGE*100/32768;
-    breakpoint[5]=breakpoint[5]*GYROFULLRANGE*100/32768;
     TransformtoFloat(0,2,breakpoint[0],1);
     TransformtoFloat(0,4,breakpoint[1],1);
     TransformtoFloat(0,6,breakpoint[2],1);
-    TransformtoFloat(64,2,breakpoint[3],2);
-    TransformtoFloat(64,4,breakpoint[4],2);
-    TransformtoFloat(64,6,breakpoint[5],2);
     delay_cycles(32000000);
     OLED_Clear();
 	
@@ -201,44 +195,8 @@ int main(void)
             }
             if(!judge.screendisplay)
                 Displaygyro(gyro);
-            i++;
-            if(i==10)
-            {
-                i=0;
-                if(judge.isacc)
-                {
-                    if(judge.isacccalced)
-                    {
-                        transmituartdata('x',acc.accshowx,0);
-                        transmituartdata('y',acc.accshowy,0);
-                        transmituartdata('z',acc.accshowz,0);
-                    }
-                    else
-                    {
-                        transmituartdata('x',acc.accx,0);
-                        transmituartdata('y',acc.accy,0);
-                        transmituartdata('z',acc.accz,0);
-                    }
-                }
-                if(judge.isgyro)
-                {
-                    if(judge.isacccalced)
-                    {
-                        transmituartdata('a',gyro.gyroshowx,0);
-                        transmituartdata('b',gyro.gyroshowy,0);
-                        transmituartdata('c',gyro.gyroshowz,0);
-                    }
-                    else
-                    {
-                        transmituartdata('a',gyro.gyrox,0);
-                        transmituartdata('b',gyro.gyroy,0);
-                        transmituartdata('c',gyro.gyroz,0);
-                    }
-                }
-            }
             ischanged=false;
-        }
-        
+        }     
     }
 }
 
@@ -468,12 +426,9 @@ void save(struct accdata acc,struct gyrodata gyro)
 	dataarray[0]=acc.accx;
     dataarray[1]=acc.accy;
     dataarray[2]=acc.accz;
-    dataarray[3]=gyro.gyrox;
-    dataarray[4]=gyro.gyroy;
-    dataarray[5]=gyro.gyroz;
     EEPROM_TypeA_eraseAllSectors();
 	DL_FlashCTL_unprotectSector( FLASHCTL, ADDRESS, DL_FLASHCTL_REGION_SELECT_MAIN);
-	DL_FlashCTL_programMemoryFromRAM( FLASHCTL, ADDRESS, dataarray, 6, DL_FLASHCTL_REGION_SELECT_MAIN);
+	DL_FlashCTL_programMemoryFromRAM( FLASHCTL, ADDRESS, dataarray, 3, DL_FLASHCTL_REGION_SELECT_MAIN);
 	// DL_FlashCTL_programMemoryFromRAM( FLASHCTL, ADDRESS, dataarray, 6, DL_FLASHCTL_REGION_SELECT_MAIN);
 }
 
@@ -487,9 +442,6 @@ void read(short* accs)//unfinished
 	accs[0]=EEPROMEmulationBuffer[0];
     accs[1]=EEPROMEmulationBuffer[1];
     accs[2]=EEPROMEmulationBuffer[2];
-    accs[3]=EEPROMEmulationBuffer[3];
-    accs[4]=EEPROMEmulationBuffer[4];
-    accs[5]=EEPROMEmulationBuffer[5];
 }
 
 void readgyro(struct gyrodata* gyro)
