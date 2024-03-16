@@ -237,8 +237,8 @@ void TIMER_0_INST_IRQHandler (void){//å®šæ—¶å™¨ä¸­æ–­
 
 void TIMER_1_INST_IRQHandler (void)
 {
-    uint8_t status=(judge.isacc<<5)|(judge.isgyro<<4)|(judge.isacccalced<<3)|(judge.isstarted<<2)|(judge.screendisplay<<1)|judge.isclear;
-    DL_UART_Main_transmitDataBlocking(UART0,status);
+    //uint8_t status=(judge.isacc<<5)|(judge.isgyro<<4)|(judge.isacccalced<<3)|(judge.isstarted<<2)|(judge.screendisplay<<1)|judge.isclear;
+    DL_UART_Main_transmitDataBlocking(UART0,(judge.isacc<<5)|(judge.isgyro<<4)|(judge.isacccalced<<3)|(judge.isstarted<<2)|(judge.screendisplay<<1)|judge.isclear);
 }
 
 void transmituartdata(char addchar, short data, bool uartport)
